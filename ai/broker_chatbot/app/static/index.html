@@ -667,11 +667,25 @@
                         sendMessage();
                     }, 1000);
                 } else {
-                    conversations.forEach(msg => {
-                        // Map actorType: 'broker' -> 'broker', 'ai' -> 'ai'
-                        const type = msg.actorType === 'broker' ? 'broker' : 'ai';
-                        addMessage(msg.message, type, msg.createdAt);
-                    });
+                    // Filter to show only broker and AI messages (exclude customer messages)
+                    const brokerConversations = conversations.filter(msg => 
+                        msg.actorType === 'broker' || msg.actorType === 'ai'
+                    );
+                    
+                    if (brokerConversations.length === 0) {
+                        // No broker conversations yet, auto-start analysis
+                        showWelcomeMessage();
+                        setTimeout(() => {
+                            messageInput.value = "حللي العميل ده وقولي ازاي اتعامل معاه";
+                            sendMessage();
+                        }, 1000);
+                    } else {
+                        // Display broker-AI conversation history
+                        brokerConversations.forEach(msg => {
+                            const type = msg.actorType === 'broker' ? 'broker' : 'ai';
+                            addMessage(msg.message, type, msg.createdAt);
+                        });
+                    }
                 }
             } else {
                 console.error("Failed to load history");
