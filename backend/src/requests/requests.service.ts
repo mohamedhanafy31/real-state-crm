@@ -1,0 +1,263 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Customer } from '../entities/customer.entity';
+import { Request } from '../entities/request.entity';
+import { RequestStatusHistory } from '../entities/request-status-history.entity';
+import { BrokerArea } from '../entities/broker-area.entity';
+import { CreateCustomerDto } from './dto/create-customer.dto';
+import { CreateRequestDto } from './dto/create-request.dto';
+import { UpdateRequestDto } from './dto/update-request.dto';
+import { ReassignRequestDto } from './dto/reassign-request.dto';
+import { AppLoggerService } from '../logger/logger.service';
+
+@Injectable()
+export class RequestsService {
+    constructor(
+        @InjectRepository(Customer)
+        private readonly customerRepository: Repository<Customer>,
+        @InjectRepository(Request)
+        private readonly requestRepository: Repository<Request>,
+        @InjectRepository(RequestStatusHistory)
+        private readonly statusHistoryRepository: Repository<RequestStatusHistory>,
+        @InjectRepository(BrokerArea)
+        private readonly brokerAreaRepository: Repository<BrokerArea>,
+        private readonly logger: AppLoggerService,
+    ) { }
+
+    // Customer operations
+    async createCustomer(createCustomerDto: CreateCustomerDto): Promise<Customer> {
+        this.logger.log(`Creating customer: ${createCustomerDto.name}, phone: ${createCustomerDto.phone}`, 'RequestsService');
+        const customer = this.customerRepository.create(createCustomerDto);
+        const savedCustomer = await this.customerRepository.save(customer);
+        this.logger.log(`Customer created successfully: customerId=${savedCustomer.customerId}`, 'RequestsService');
+        return savedCustomer;
+    }
+
+    async findAllCustomers(phone?: string): Promise<Customer[]> {
+        const query = this.customerRepository
+            .createQueryBuilder('customer')
+            .leftJoinAndSelect('customer.requests', 'requests')
+            .orderBy('customer.createdAt', 'DESC');
+
+        if (phone) {
+            query.andWhere('customer.phone = :phone', { phone });
+        }
+
+        return query.getMany();
+    }
+
+    async findCustomer(customerId: number): Promise<Customer> {
+        const customer = await this.customerRepository.findOne({
+            where: { customerId },
+            relations: ['requests', 'requests.area', 'requests.assignedBroker', 'requests.assignedBroker.user'],
+        });
+
+        if (!customer) {
+            throw new NotFoundException(`Customer with ID ${customerId} not found`);
+        }
+
+        return customer;
+    }
+
+    // Request operations
+    async createRequest(createRequestDto: CreateRequestDto): Promise<Request> {
+        const { customerId, areaId, assignedBrokerId } = createRequestDto;
+        this.logger.log(`Creating request: customerId=${customerId}, areaId=${areaId}`, 'RequestsService');
+
+        // Verify customer exists
+        const customer = await this.customerRepository.findOne({ where: { customerId } });
+        if (!customer) {
+            this.logger.warn(`Request creation failed: Customer not found customerId=${customerId}`, 'RequestsService');
+            throw new NotFoundException(`Customer with ID ${customerId} not found`);
+        }
+
+        // Auto-assign broker if not provided
+        let brokerId: number | null = assignedBrokerId || null;
+        if (!brokerId) {
+            brokerId = await this.findAvailableBroker(areaId);
+            this.logger.log(`Auto-assigned broker: brokerId=${brokerId} for areaId=${areaId}`, 'RequestsService');
+        }
+
+        // Create request
+        const request = this.requestRepository.create({
+            customerId,
+            areaId,
+            assignedBrokerId: brokerId,
+            status: 'new',
+            unitType: createRequestDto.unitType,
+            budgetMin: createRequestDto.budgetMin,
+            budgetMax: createRequestDto.budgetMax,
+            sizeMin: createRequestDto.sizeMin,
+            sizeMax: createRequestDto.sizeMax,
+            bedrooms: createRequestDto.bedrooms,
+            bathrooms: createRequestDto.bathrooms,
+            notes: createRequestDto.notes,
+        });
+
+        const savedRequest = await this.requestRepository.save(request);
+
+        // Log initial status
+        await this.logStatusChange(
+            savedRequest.requestId,
+            null,
+            'new',
+            'system',
+            null,
+            brokerId,
+            createRequestDto.notes,
+        );
+
+        this.logger.log(`Request created successfully: requestId=${savedRequest.requestId}, status=new, brokerId=${brokerId}`, 'RequestsService');
+        return this.findRequest(savedRequest.requestId);
+    }
+
+    async findAllRequests(filters?: any): Promise<Request[]> {
+        const query = this.requestRepository
+            .createQueryBuilder('request')
+            .leftJoinAndSelect('request.customer', 'customer')
+            .leftJoinAndSelect('request.area', 'area')
+            .leftJoinAndSelect('request.assignedBroker', 'broker')
+            .leftJoinAndSelect('broker.user', 'user');
+
+        if (filters?.status) {
+            query.andWhere('request.status = :status', { status: filters.status });
+        }
+
+        if (filters?.assignedBrokerId) {
+            query.andWhere('request.assignedBrokerId = :brokerId', {
+                brokerId: filters.assignedBrokerId,
+            });
+        }
+
+        if (filters?.areaId) {
+            query.andWhere('request.areaId = :areaId', { areaId: filters.areaId });
+        }
+
+        query.orderBy('request.createdAt', 'DESC');
+
+        return query.getMany();
+    }
+
+    async findRequest(requestId: number): Promise<Request> {
+        const request = await this.requestRepository.findOne({
+            where: { requestId },
+            relations: [
+                'customer',
+                'area',
+                'assignedBroker',
+                'assignedBroker.user',
+                'statusHistory',
+            ],
+        });
+
+        if (!request) {
+            throw new NotFoundException(`Request with ID ${requestId} not found`);
+        }
+
+        return request;
+    }
+
+    async updateRequest(requestId: number, updateRequestDto: UpdateRequestDto): Promise<Request> {
+        const request = await this.findRequest(requestId);
+        const oldStatus = request.status;
+
+        Object.assign(request, updateRequestDto);
+        const updatedRequest = await this.requestRepository.save(request);
+
+        // Log status change if status was updated
+        if (updateRequestDto.status && updateRequestDto.status !== oldStatus) {
+            this.logger.log(`Request status updated: requestId=${requestId}, ${oldStatus} → ${updateRequestDto.status}`, 'RequestsService');
+            await this.logStatusChange(
+                requestId,
+                oldStatus,
+                updateRequestDto.status,
+                'broker',
+                request.assignedBrokerId,
+                request.assignedBrokerId,
+                updateRequestDto.notes,
+            );
+        }
+
+        return this.findRequest(requestId);
+    }
+
+    async reassignRequest(requestId: number, reassignDto: ReassignRequestDto): Promise<Request> {
+        this.logger.log(`Reassigning request: requestId=${requestId} to brokerId=${reassignDto.brokerId}`, 'RequestsService');
+        const request = await this.findRequest(requestId);
+        const oldBrokerId = request.assignedBrokerId;
+
+        request.assignedBrokerId = reassignDto.brokerId;
+        request.status = 'reassigned';
+        // Use update to avoid relation issues
+        await this.requestRepository.update(requestId, {
+            assignedBrokerId: reassignDto.brokerId,
+            status: 'reassigned',
+        });
+
+        // await this.requestRepository.save(request);
+
+        // Log reassignment
+        await this.logStatusChange(
+            requestId,
+            request.status,
+            'reassigned',
+            'supervisor',
+            oldBrokerId,
+            reassignDto.brokerId,
+        );
+
+        this.logger.log(`Request reassigned successfully: requestId=${requestId}, fromBroker=${oldBrokerId} → toBroker=${reassignDto.brokerId}`, 'RequestsService');
+        return this.findRequest(requestId);
+    }
+
+    async getRequestHistory(requestId: number): Promise<RequestStatusHistory[]> {
+        return this.statusHistoryRepository.find({
+            where: { requestId },
+            order: { createdAt: 'ASC' },
+        });
+    }
+
+    // Helper methods
+    private async findAvailableBroker(areaId: number): Promise<number | null> {
+        const brokerArea = await this.brokerAreaRepository.findOne({
+            where: { areaId },
+            relations: ['broker'],
+        });
+
+        return brokerArea?.brokerId || null;
+    }
+
+    private async logStatusChange(
+        requestId: number,
+        oldStatus: string | null,
+        newStatus: string,
+        changedBy: string,
+        fromBrokerId: number | null,
+        toBrokerId: number | null,
+        notes?: string,
+    ): Promise<void> {
+        const history = this.statusHistoryRepository.create({
+            requestId,
+            oldStatus,
+            newStatus,
+            changedBy,
+            fromBrokerId,
+            toBrokerId,
+            notes,
+        });
+
+        await this.statusHistoryRepository.save(history);
+    }
+
+    async findPendingRequests(hours: number): Promise<Request[]> {
+        const cutoffDate = new Date();
+        cutoffDate.setHours(cutoffDate.getHours() - hours);
+
+        return this.requestRepository
+            .createQueryBuilder('request')
+            .where('request.status = :status', { status: 'new' })
+            .andWhere('request.updatedAt < :cutoff', { cutoff: cutoffDate })
+            .getMany();
+    }
+}

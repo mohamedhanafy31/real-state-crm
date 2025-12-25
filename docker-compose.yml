@@ -1,0 +1,61 @@
+services:
+  db:
+    image: ankane/pgvector:v0.5.1
+    container_name: real_estate_crm_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: real_estate_crm
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - ./DB/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    image: redis:7-alpine
+    container_name: real_estate_crm_redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6383:6379"
+    volumes:
+      - ./redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  backend:
+    build: ./backend
+    container_name: real_estate_crm_backend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USERNAME=admin
+      - DB_PASSWORD=password
+      - DB_DATABASE=real_estate_crm
+      - JWT_SECRET=your-secret-key-change-this-in-production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_TTL_DEFAULT=3600
+      - CACHE_TTL_STATIC=86400
+      - CACHE_TTL_DYNAMIC=300
+    depends_on:
+      - db
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend/app
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:3000/api
+    container_name: real_estate_crm_frontend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - backend

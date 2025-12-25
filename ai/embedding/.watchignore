@@ -1,0 +1,3 @@
+# Ignore logs directory for file watching
+logs/
+*.log
