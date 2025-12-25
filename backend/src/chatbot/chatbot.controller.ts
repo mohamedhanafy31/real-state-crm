@@ -4,6 +4,7 @@ import {
     Post,
     Body,
     Query,
+    Param,
     HttpCode,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
@@ -176,5 +177,32 @@ export class ChatbotController {
     @ApiResponse({ status: 200, description: 'Project comparison data' })
     async compareProjects(@Body() body: { projects: string[] }) {
         return this.projectsService.compareProjects(body.projects);
+    }
+
+    // ========== Broker Chatbot Endpoints ==========
+
+    @Get('broker/requests/:requestId')
+    @ApiOperation({ summary: 'Get request with conversations for broker chatbot' })
+    @ApiQuery({ name: 'broker_id', required: true, type: Number, description: 'Broker ID for access verification' })
+    @ApiResponse({ status: 200, description: 'Request with conversations' })
+    @ApiResponse({ status: 403, description: 'Access denied - broker not assigned to request' })
+    @ApiResponse({ status: 404, description: 'Request not found' })
+    async getRequestWithConversations(
+        @Param('requestId') requestId: number,
+        @Query('broker_id') brokerId: number,
+    ) {
+        return this.requestsService.getRequestWithConversationsForBroker(
+            Number(requestId),
+            Number(brokerId),
+        );
+    }
+
+    @Get('broker/requests/:requestId/conversations')
+    @ApiOperation({ summary: 'Get conversations for a request (broker chatbot)' })
+    @ApiResponse({ status: 200, description: 'List of conversations' })
+    async getRequestConversations(
+        @Param('requestId') requestId: number,
+    ) {
+        return this.requestsService.getRequestConversations(Number(requestId));
     }
 }

@@ -1,0 +1,22 @@
+# FastAPI and Web
+fastapi>=0.109.0
+uvicorn>=0.27.0
+python-dotenv>=1.0.0
+
+# Pydantic
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# HTTP Client
+httpx>=0.26.0
+
+# Database
+psycopg2-binary>=2.9.9
+
+# LangChain and LangGraph
+langchain>=0.1.0
+langchain-cohere>=0.1.0
+langgraph>=0.0.20
+
+# Cohere
+cohere>=4.0.0

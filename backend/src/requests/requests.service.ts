@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Customer } from '../entities/customer.entity';
 import { Request } from '../entities/request.entity';
 import { RequestStatusHistory } from '../entities/request-status-history.entity';
 import { BrokerArea } from '../entities/broker-area.entity';
+import { Conversation } from '../entities/conversation.entity';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
@@ -22,6 +23,8 @@ export class RequestsService {
         private readonly statusHistoryRepository: Repository<RequestStatusHistory>,
         @InjectRepository(BrokerArea)
         private readonly brokerAreaRepository: Repository<BrokerArea>,
+        @InjectRepository(Conversation)
+        private readonly conversationRepository: Repository<Conversation>,
         private readonly logger: AppLoggerService,
     ) { }
 
@@ -259,5 +262,64 @@ export class RequestsService {
             .where('request.status = :status', { status: 'new' })
             .andWhere('request.updatedAt < :cutoff', { cutoff: cutoffDate })
             .getMany();
+    }
+
+    // ========== Broker Chatbot Methods ==========
+
+    /**
+     * Get request with conversations for broker chatbot.
+     * Verifies broker has access to the request.
+     */
+    async getRequestWithConversationsForBroker(
+        requestId: number,
+        brokerId: number,
+    ): Promise<Request> {
+        this.logger.log(
+            `Broker ${brokerId} requesting access to request ${requestId}`,
+            'RequestsService',
+        );
+
+        const request = await this.requestRepository.findOne({
+            where: { requestId },
+            relations: [
+                'customer',
+                'area',
+                'assignedBroker',
+                'assignedBroker.user',
+                'conversations',
+            ],
+        });
+
+        if (!request) {
+            throw new NotFoundException(`Request with ID ${requestId} not found`);
+        }
+
+        // Verify broker is assigned to this request
+        if (request.assignedBrokerId !== brokerId) {
+            this.logger.warn(
+                `Access denied: Broker ${brokerId} not assigned to request ${requestId} (assigned to: ${request.assignedBrokerId})`,
+                'RequestsService',
+            );
+            throw new ForbiddenException(
+                `Broker ${brokerId} is not assigned to request ${requestId}`,
+            );
+        }
+
+        this.logger.log(
+            `Returning request ${requestId} with ${request.conversations?.length || 0} conversations`,
+            'RequestsService',
+        );
+
+        return request;
+    }
+
+    /**
+     * Get conversations for a request.
+     */
+    async getRequestConversations(requestId: number): Promise<Conversation[]> {
+        return this.conversationRepository.find({
+            where: { relatedRequestId: requestId },
+            order: { createdAt: 'ASC' },
+        });
     }
 }
