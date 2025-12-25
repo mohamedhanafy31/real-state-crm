@@ -73,6 +73,7 @@ def build_broker_workflow() -> StateGraph:
     workflow.add_node("generate_strategy", nodes.generate_strategy)
     workflow.add_node("handle_broker_question", nodes.handle_broker_question)
     workflow.add_node("generate_response", nodes.generate_response)
+    workflow.add_node("persist_conversation", nodes.persist_conversation)
     
     # ========== Define the flow ==========
     
@@ -107,9 +108,12 @@ def build_broker_workflow() -> StateGraph:
         }
     )
     
-    # Both paths lead to END
-    workflow.add_edge("handle_broker_question", END)
-    workflow.add_edge("generate_response", END)
+    # Both response paths lead to persist_conversation
+    workflow.add_edge("handle_broker_question", "persist_conversation")
+    workflow.add_edge("generate_response", "persist_conversation")
+    
+    # Persist leads to END
+    workflow.add_edge("persist_conversation", END)
     
     # Compile the graph
     compiled = workflow.compile()

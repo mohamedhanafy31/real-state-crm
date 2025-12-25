@@ -563,3 +563,57 @@ def detect_question_type(state: BrokerConversationState) -> Dict[str, Any]:
         "question_type": question_type,
         "is_first_message": not state.get('session_history')
     }
+
+
+def persist_conversation(state: BrokerConversationState) -> Dict[str, Any]:
+    """Persist broker-AI conversation to database via backend API.
+    
+    Saves both the broker's message and AI response to the conversations table.
+    
+    Args:
+        state: Current conversation state.
+        
+    Returns:
+        Updated state with persistence status.
+    """
+    if state.get('error') and not state.get('response'):
+        logger.info("Skipping persistence - error state without response")
+        return {}
+    
+    broker_id = state.get('broker_id')
+    request_id = state.get('request_id')
+    broker_message = state.get('broker_message', '')
+    ai_response = state.get('response', '')
+    
+    logger.info(f"Persisting conversation for broker {broker_id}, request {request_id}")
+    
+    backend_api = get_backend_api_service()
+    
+    try:
+        # Save broker message
+        if broker_message:
+            backend_api.save_conversation(
+                request_id=request_id,
+                actor_type='broker',
+                message=broker_message,
+                actor_id=broker_id
+            )
+            logger.debug(f"Saved broker message: {broker_message[:50]}...")
+        
+        # Save AI response
+        if ai_response:
+            backend_api.save_conversation(
+                request_id=request_id,
+                actor_type='ai',
+                message=ai_response,
+                actor_id=None  # AI has no actor_id
+            )
+            logger.debug(f"Saved AI response: {ai_response[:50]}...")
+        
+        logger.info("Conversation persisted successfully")
+        return {"conversation_persisted": True}
+        
+    except Exception as e:
+        logger.error(f"Failed to persist conversation: {e}")
+        return {"conversation_persisted": False, "persistence_error": str(e)}
+

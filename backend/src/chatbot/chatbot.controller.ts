@@ -205,4 +205,33 @@ export class ChatbotController {
     ) {
         return this.requestsService.getRequestConversations(Number(requestId));
     }
+
+    @Post('conversations')
+    @ApiOperation({ summary: 'Save a conversation message (broker chatbot)' })
+    @ApiResponse({ status: 201, description: 'Conversation saved' })
+    async saveConversation(
+        @Body() body: {
+            related_request_id: number;
+            actor_type: 'broker' | 'ai' | 'customer';
+            message: string;
+            actor_id?: number;
+        },
+    ) {
+        return this.requestsService.saveConversation(
+            body.related_request_id,
+            body.actor_type,
+            body.message,
+            body.actor_id,
+        );
+    }
+
+    @Get('broker/all-requests')
+    @ApiOperation({ summary: 'Get all requests for broker selection (broker chatbot)' })
+    @ApiQuery({ name: 'broker_id', required: false, type: Number })
+    @ApiResponse({ status: 200, description: 'List of requests' })
+    async getAllRequestsForBroker(
+        @Query('broker_id') brokerId?: number,
+    ) {
+        return this.requestsService.getAllRequestsForBrokerUI(brokerId ? Number(brokerId) : undefined);
+    }
 }

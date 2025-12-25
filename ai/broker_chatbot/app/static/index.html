@@ -541,9 +541,9 @@
           '<div class="loading"><div class="spinner"></div><span>جاري تحميل الطلبات...</span></div>';
 
         try {
-          // Try to fetch from backend
+          // Fetch real requests from backend - use the chatbot broker endpoint
           const response = await fetch(
-            `${BACKEND_API}/requests?broker_id=${currentBrokerId}`
+            `${BACKEND_API}/chatbot/broker/all-requests?broker_id=${currentBrokerId}`
           );
           if (response.ok) {
             const requests = await response.json();

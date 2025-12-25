@@ -163,6 +163,73 @@ class BrokerBackendAPIService:
             logger.error(f"Error getting request details: {e}")
             return None
     
+    def save_conversation(
+        self,
+        request_id: int,
+        actor_type: str,
+        message: str,
+        actor_id: Optional[int] = None
+    ) -> bool:
+        """Save a conversation message to the database.
+        
+        Args:
+            request_id: ID of the related request.
+            actor_type: Type of actor ('broker' or 'ai').
+            message: The message content.
+            actor_id: ID of the actor (broker_id for broker messages).
+            
+        Returns:
+            True if saved successfully.
+        """
+        try:
+            payload = {
+                "related_request_id": request_id,
+                "actor_type": actor_type,
+                "message": message
+            }
+            
+            if actor_id:
+                payload["actor_id"] = actor_id
+            
+            response = self.client.post(
+                f"{self.base_url}/chatbot/conversations",
+                json=payload
+            )
+            response.raise_for_status()
+            logger.info(f"Saved {actor_type} conversation for request {request_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving conversation: {e}")
+            return False
+    
+    def get_all_requests(self, broker_id: Optional[int] = None) -> List[Dict]:
+        """Get all requests, optionally filtered by broker.
+        
+        Args:
+            broker_id: Optional broker ID to filter by.
+            
+        Returns:
+            List of requests.
+        """
+        try:
+            params = {}
+            if broker_id:
+                params["assignedBrokerId"] = broker_id
+            
+            response = self.client.get(
+                f"{self.base_url}/requests",
+                params=params
+            )
+            response.raise_for_status()
+            requests = response.json()
+            logger.info(f"Retrieved {len(requests)} requests")
+            return requests
+            
+        except Exception as e:
+            logger.error(f"Error getting requests: {e}")
+            return []
+    
     def close(self):
         """Close the HTTP client."""
         self.client.close()

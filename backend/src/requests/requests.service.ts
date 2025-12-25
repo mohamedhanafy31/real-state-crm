@@ -322,4 +322,48 @@ export class RequestsService {
             order: { createdAt: 'ASC' },
         });
     }
+
+    /**
+     * Save a conversation message.
+     */
+    async saveConversation(
+        requestId: number,
+        actorType: 'broker' | 'ai' | 'customer',
+        message: string,
+        actorId?: number,
+    ): Promise<Conversation> {
+        const conversation = this.conversationRepository.create({
+            relatedRequestId: requestId,
+            actorType: actorType,
+            message: message,
+            actorId: actorId || 0,  // 0 for AI messages
+        });
+
+        const saved = await this.conversationRepository.save(conversation);
+        this.logger.log(
+            `Saved ${actorType} conversation for request ${requestId}`,
+            'RequestsService',
+        );
+        return saved;
+    }
+
+    /**
+     * Get all requests for broker UI.
+     */
+    async getAllRequestsForBrokerUI(brokerId?: number): Promise<Request[]> {
+        const query = this.requestRepository
+            .createQueryBuilder('request')
+            .leftJoinAndSelect('request.customer', 'customer')
+            .leftJoinAndSelect('request.area', 'area')
+            .leftJoinAndSelect('request.assignedBroker', 'broker')
+            .leftJoinAndSelect('broker.user', 'user');
+
+        if (brokerId) {
+            query.where('request.assignedBrokerId = :brokerId', { brokerId });
+        }
+
+        query.orderBy('request.createdAt', 'DESC');
+
+        return query.getMany();
+    }
 }
