@@ -609,7 +609,7 @@
         return labels[status] || status;
       }
 
-      function selectRequest(request) {
+      async function selectRequest(request) {
         currentRequestId = request.requestId;
         messages = [];
 
@@ -634,7 +634,50 @@
           request.budgetMax
         )} | 🏠 ${request.unitType || "غير محدد"}`;
 
-        // Clear messages
+        // Reset analysis panel
+        resetAnalysisPanel();
+
+        // Load conversation history
+        await loadConversationHistory(request.requestId);
+
+        // Focus input
+        messageInput.focus();
+      }
+
+      async function loadConversationHistory(requestId) {
+        chatMessages.innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+                <span>جاري استرجاع المحادثات السابقة...</span>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`${BACKEND_API}/chatbot/broker/requests/${requestId}/conversations`);
+            if (response.ok) {
+                const conversations = await response.json();
+                chatMessages.innerHTML = '';
+                
+                if (conversations.length === 0) {
+                    showWelcomeMessage();
+                } else {
+                    conversations.forEach(msg => {
+                        // Map actorType: 'broker' -> 'broker', 'ai' -> 'ai'
+                        const type = msg.actorType === 'broker' ? 'broker' : 'ai';
+                        addMessage(msg.message, type, msg.createdAt);
+                    });
+                }
+            } else {
+                console.error("Failed to load history");
+                showWelcomeMessage();
+            }
+        } catch (error) {
+            console.error("Error loading history:", error);
+            showWelcomeMessage();
+        }
+      }
+
+      function showWelcomeMessage() {
         chatMessages.innerHTML = `
                 <div class="message ai">
                     <pre>مرحباً! أنا مساعدك لتحليل هذا الطلب. 
@@ -646,17 +689,9 @@
 • نصائح للتفاوض
 
 جرب الضغط على أزرار الأسئلة السريعة أدناه 👇</pre>
-                    <div class="timestamp">${new Date().toLocaleTimeString(
-                      "ar-EG"
-                    )}</div>
+                    <div class="timestamp">${new Date().toLocaleTimeString("ar-EG")}</div>
                 </div>
             `;
-
-        // Reset analysis panel
-        resetAnalysisPanel();
-
-        // Focus input
-        messageInput.focus();
       }
 
       function resetAnalysisPanel() {
@@ -727,15 +762,25 @@ cd ai/broker_chatbot && ./run.sh`,
         messageInput.focus();
       }
 
-      function addMessage(content, type) {
+      function addMessage(content, type, timestampStr = null) {
         const msgDiv = document.createElement("div");
         msgDiv.className = `message ${type}`;
-        msgDiv.id = "msg-" + Date.now();
+        msgDiv.id = "msg-" + Date.now() + Math.random(); 
+        
+        let timeDisplay;
+        if (timestampStr) {
+            try {
+                timeDisplay = new Date(timestampStr).toLocaleTimeString("ar-EG");
+            } catch (e) {
+                timeDisplay = new Date().toLocaleTimeString("ar-EG");
+            }
+        } else {
+            timeDisplay = new Date().toLocaleTimeString("ar-EG");
+        }
+
         msgDiv.innerHTML = `
                 <pre>${content}</pre>
-                <div class="timestamp">${new Date().toLocaleTimeString(
-                  "ar-EG"
-                )}</div>
+                <div class="timestamp">${timeDisplay}</div>
             `;
         chatMessages.appendChild(msgDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
