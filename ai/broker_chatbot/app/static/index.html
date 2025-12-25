@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Broker Chatbot - مساعد الوسيط</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
       :root {
         --primary: #2563eb;
@@ -660,6 +661,11 @@
                 
                 if (conversations.length === 0) {
                     showWelcomeMessage();
+                    // Auto-start analysis for new requests
+                    setTimeout(() => {
+                        messageInput.value = "حللي العميل ده وقولي ازاي اتعامل معاه";
+                        sendMessage();
+                    }, 1000);
                 } else {
                     conversations.forEach(msg => {
                         // Map actorType: 'broker' -> 'broker', 'ai' -> 'ai'
@@ -678,20 +684,8 @@
       }
 
       function showWelcomeMessage() {
-        chatMessages.innerHTML = `
-                <div class="message ai">
-                    <pre>مرحباً! أنا مساعدك لتحليل هذا الطلب. 
-                    
-يمكنك سؤالي عن:
-• تحليل شخصية العميل
-• مستوى الجدية والمخاطر
-• استراتيجية التواصل
-• نصائح للتفاوض
-
-جرب الضغط على أزرار الأسئلة السريعة أدناه 👇</pre>
-                    <div class="timestamp">${new Date().toLocaleTimeString("ar-EG")}</div>
-                </div>
-            `;
+        // Welcome message is now transient or less needed if we auto-start, 
+        // but kept for structure.
       }
 
       function resetAnalysisPanel() {
@@ -778,8 +772,11 @@ cd ai/broker_chatbot && ./run.sh`,
             timeDisplay = new Date().toLocaleTimeString("ar-EG");
         }
 
+        // Render Markdown content
+        const renderedContent = marked.parse(content);
+
         msgDiv.innerHTML = `
-                <pre>${content}</pre>
+                <div class="message-content">${renderedContent}</div>
                 <div class="timestamp">${timeDisplay}</div>
             `;
         chatMessages.appendChild(msgDiv);
