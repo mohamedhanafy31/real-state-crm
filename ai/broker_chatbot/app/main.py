@@ -3,8 +3,11 @@ Broker Chatbot - FastAPI Application Entry Point.
 AI assistant for real estate brokers to analyze client requests.
 """
 
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 
 from app.api.routes import health, chat
@@ -12,6 +15,9 @@ from app.core.logging_config import get_logger, setup_logging
 from app.config import get_settings
 
 logger = get_logger(__name__)
+
+# Static files directory
+STATIC_DIR = Path(__file__).parent / "static"
 
 
 @asynccontextmanager
@@ -25,6 +31,7 @@ async def lifespan(app: FastAPI):
     logger.info(f"Port: {settings.port}")
     logger.info(f"Backend API: {settings.backend_api_url}")
     logger.info(f"Embedding Service: {settings.embedding_service_url}")
+    logger.info(f"Static files: {STATIC_DIR}")
     logger.info("=" * 50)
     
     # Validate LLM configuration
@@ -88,14 +95,23 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(chat.router)
 
+# Mount static files
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+
 
 @app.get("/", tags=["Root"])
 async def root():
-    """Root endpoint with API information."""
+    """Serve the broker chatbot UI."""
+    index_file = STATIC_DIR / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
     return {
         "service": "Broker Chatbot API",
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health",
-        "ready": "/ready"
+        "ready": "/ready",
+        "ui": "/static/index.html"
     }
+

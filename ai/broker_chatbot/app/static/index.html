@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Broker Chatbot - مساعد الوسيط</title>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --secondary: #64748b;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg-dark: #0f172a;
+        --bg-card: #1e293b;
+        --bg-input: #334155;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --border: #475569;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg-dark);
+        color: var(--text-primary);
+        min-height: 100vh;
+      }
+
+      .container {
+        display: flex;
+        height: 100vh;
+      }
+
+      /* Sidebar - Request List */
+      .sidebar {
+        width: 320px;
+        background: var(--bg-card);
+        border-left: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .sidebar-header h2 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .broker-select {
+        width: 100%;
+        padding: 10px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+      }
+
+      .request-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+      }
+
+      .request-item {
+        padding: 15px;
+        background: var(--bg-input);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+      }
+
+      .request-item:hover {
+        border-color: var(--primary);
+      }
+
+      .request-item.active {
+        border-color: var(--primary);
+        background: rgba(37, 99, 235, 0.2);
+      }
+
+      .request-item .customer-name {
+        font-weight: 600;
+        margin-bottom: 5px;
+      }
+
+      .request-item .request-info {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .request-item .request-badge {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        margin-top: 8px;
+      }
+
+      .badge-new {
+        background: var(--primary);
+      }
+      .badge-active {
+        background: var(--success);
+      }
+      .badge-pending {
+        background: var(--warning);
+        color: #000;
+      }
+
+      /* Main Chat Area */
+      .chat-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg-dark);
+      }
+
+      .chat-header {
+        padding: 20px;
+        background: var(--bg-card);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .chat-header h1 {
+        font-size: 1.3rem;
+        margin-bottom: 5px;
+      }
+
+      .chat-header .request-details {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .message {
+        max-width: 80%;
+        padding: 15px 20px;
+        border-radius: 15px;
+        line-height: 1.6;
+      }
+
+      .message.broker {
+        align-self: flex-end;
+        background: var(--primary);
+        border-bottom-right-radius: 5px;
+      }
+
+      .message.ai {
+        align-self: flex-start;
+        background: var(--bg-card);
+        border-bottom-left-radius: 5px;
+      }
+
+      .message.ai pre {
+        white-space: pre-wrap;
+        font-family: inherit;
+        margin: 0;
+      }
+
+      .message .timestamp {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-top: 8px;
+      }
+
+      .chat-input-container {
+        padding: 20px;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border);
+      }
+
+      .chat-input-form {
+        display: flex;
+        gap: 10px;
+      }
+
+      .chat-input {
+        flex: 1;
+        padding: 15px 20px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 25px;
+        color: var(--text-primary);
+        font-size: 1rem;
+        outline: none;
+      }
+
+      .chat-input:focus {
+        border-color: var(--primary);
+      }
+
+      .send-btn {
+        padding: 15px 25px;
+        background: var(--primary);
+        border: none;
+        border-radius: 25px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .send-btn:hover {
+        background: var(--primary-dark);
+      }
+
+      .send-btn:disabled {
+        background: var(--secondary);
+        cursor: not-allowed;
+      }
+
+      /* Analysis Panel */
+      .analysis-panel {
+        width: 350px;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border);
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .analysis-section {
+        margin-bottom: 25px;
+      }
+
+      .analysis-section h3 {
+        font-size: 1rem;
+        margin-bottom: 15px;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .analysis-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .analysis-item .label {
+        color: var(--text-secondary);
+      }
+
+      .analysis-item .value {
+        font-weight: 600;
+      }
+
+      .risk-high {
+        color: var(--danger);
+      }
+      .risk-medium {
+        color: var(--warning);
+      }
+      .risk-low {
+        color: var(--success);
+      }
+
+      .quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+      }
+
+      .quick-action-btn {
+        padding: 8px 15px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        color: var(--text-primary);
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+      }
+
+      .quick-action-btn:hover {
+        border-color: var(--primary);
+        background: rgba(37, 99, 235, 0.2);
+      }
+
+      /* Loading State */
+      .loading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-secondary);
+      }
+
+      .spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Empty State */
+      .empty-state {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        gap: 15px;
+      }
+
+      .empty-state .icon {
+        font-size: 4rem;
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Sidebar - Request List -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h2>📋 الطلبات المُسندة</h2>
+          <select class="broker-select" id="brokerSelect">
+            <option value="1">وسيط #1</option>
+            <option value="2">وسيط #2</option>
+            <option value="3">وسيط #3</option>
+          </select>
+        </div>
+        <div class="request-list" id="requestList">
+          <div class="loading">
+            <div class="spinner"></div>
+            <span>جاري تحميل الطلبات...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Chat Area -->
+      <div class="chat-area">
+        <div class="chat-header" id="chatHeader" style="display: none">
+          <h1 id="customerName">اختر طلب للبدء</h1>
+          <div class="request-details" id="requestDetails"></div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <div class="empty-state" id="emptyState">
+            <div class="icon">💬</div>
+            <div>اختر طلب من القائمة لبدء التحليل</div>
+          </div>
+        </div>
+
+        <div
+          class="chat-input-container"
+          id="chatInputContainer"
+          style="display: none"
+        >
+          <form class="chat-input-form" id="chatForm">
+            <input
+              type="text"
+              class="chat-input"
+              id="messageInput"
+              placeholder="اكتب سؤالك هنا... مثال: حللي العميل ده"
+              autocomplete="off"
+            />
+            <button type="submit" class="send-btn" id="sendBtn">إرسال</button>
+          </form>
+          <div class="quick-actions">
+            <button
+              class="quick-action-btn"
+              data-msg="حللي العميل ده وقولي ازاي اتعامل معاه"
+            >
+              📊 تحليل كامل
+            </button>
+            <button class="quick-action-btn" data-msg="هل العميل ده جاد؟">
+              🤔 جدية العميل
+            </button>
+            <button
+              class="quick-action-btn"
+              data-msg="ايه المخاطر في الطلب ده؟"
+            >
+              ⚠️ المخاطر
+            </button>
+            <button
+              class="quick-action-btn"
+              data-msg="اقترح جملة افتتاحية للتواصل"
+            >
+              💬 جملة افتتاحية
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analysis Panel -->
+      <div class="analysis-panel" id="analysisPanel" style="display: none">
+        <div class="analysis-section">
+          <h3>🧑 تحليل العميل</h3>
+          <div class="analysis-item">
+            <span class="label">نوع الشخصية</span>
+            <span class="value" id="personalityType">-</span>
+          </div>
+          <div class="analysis-item">
+            <span class="label">مستوى الجدية</span>
+            <span class="value" id="seriousnessLevel">-</span>
+          </div>
+          <div class="analysis-item">
+            <span class="label">مستوى المخاطر</span>
+            <span class="value" id="riskLevel">-</span>
+          </div>
+        </div>
+
+        <div class="analysis-section">
+          <h3>💡 الاستراتيجية</h3>
+          <div class="analysis-item">
+            <span class="label">نبرة التواصل</span>
+            <span class="value" id="communicationTone">-</span>
+          </div>
+        </div>
+
+        <div class="analysis-section">
+          <h3>⚠️ تحذيرات</h3>
+          <div
+            id="riskIndicators"
+            style="color: var(--warning); font-size: 0.9rem"
+          >
+            لا توجد تحذيرات
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Configuration
+      const API_BASE = "http://localhost:8002/api";
+      const BACKEND_API = "http://localhost:3000";
+
+      // State
+      let currentBrokerId = 1;
+      let currentRequestId = null;
+      let messages = [];
+
+      // DOM Elements
+      const brokerSelect = document.getElementById("brokerSelect");
+      const requestList = document.getElementById("requestList");
+      const chatHeader = document.getElementById("chatHeader");
+      const chatMessages = document.getElementById("chatMessages");
+      const chatInputContainer = document.getElementById("chatInputContainer");
+      const chatForm = document.getElementById("chatForm");
+      const messageInput = document.getElementById("messageInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const emptyState = document.getElementById("emptyState");
+      const analysisPanel = document.getElementById("analysisPanel");
+
+      // Mock requests for demo (when backend is not available)
+      const mockRequests = [
+        {
+          requestId: 1,
+          customer: { name: "أحمد محمد", phone: "01012345678" },
+          area: { name: "الساحل الشمالي" },
+          unitType: "شاليه",
+          budgetMin: 2000000,
+          budgetMax: 3000000,
+          status: "new",
+        },
+        {
+          requestId: 2,
+          customer: { name: "سارة أحمد", phone: "01098765432" },
+          area: { name: "التجمع الخامس" },
+          unitType: "شقة",
+          budgetMin: 1500000,
+          budgetMax: 2500000,
+          status: "active",
+        },
+        {
+          requestId: 3,
+          customer: { name: "محمد علي", phone: "01112223344" },
+          area: { name: "العين السخنة" },
+          unitType: "فيلا",
+          budgetMin: 5000000,
+          budgetMax: 8000000,
+          status: "pending",
+        },
+      ];
+
+      // Initialize
+      document.addEventListener("DOMContentLoaded", () => {
+        loadRequests();
+        setupEventListeners();
+      });
+
+      function setupEventListeners() {
+        brokerSelect.addEventListener("change", (e) => {
+          currentBrokerId = parseInt(e.target.value);
+          loadRequests();
+        });
+
+        chatForm.addEventListener("submit", (e) => {
+          e.preventDefault();
+          sendMessage();
+        });
+
+        // Quick action buttons
+        document.querySelectorAll(".quick-action-btn").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            messageInput.value = btn.dataset.msg;
+            sendMessage();
+          });
+        });
+      }
+
+      async function loadRequests() {
+        requestList.innerHTML =
+          '<div class="loading"><div class="spinner"></div><span>جاري تحميل الطلبات...</span></div>';
+
+        try {
+          // Try to fetch from backend
+          const response = await fetch(
+            `${BACKEND_API}/requests?broker_id=${currentBrokerId}`
+          );
+          if (response.ok) {
+            const requests = await response.json();
+            renderRequests(requests);
+          } else {
+            throw new Error("Backend not available");
+          }
+        } catch (error) {
+          console.log("Using mock data:", error.message);
+          // Use mock data for demo
+          renderRequests(mockRequests);
+        }
+      }
+
+      function renderRequests(requests) {
+        if (requests.length === 0) {
+          requestList.innerHTML =
+            '<div class="empty-state"><div>لا توجد طلبات مُسندة</div></div>';
+          return;
+        }
+
+        requestList.innerHTML = requests
+          .map(
+            (req) => `
+                <div class="request-item ${
+                  currentRequestId === req.requestId ? "active" : ""
+                }" 
+                     onclick="selectRequest(${JSON.stringify(req).replace(
+                       /"/g,
+                       "&quot;"
+                     )})">
+                    <div class="customer-name">${
+                      req.customer?.name || "عميل #" + req.requestId
+                    }</div>
+                    <div class="request-info">
+                        📍 ${req.area?.name || "غير محدد"} | 
+                        🏠 ${req.unitType || "غير محدد"}
+                    </div>
+                    <div class="request-info">
+                        💰 ${formatBudget(req.budgetMin)} - ${formatBudget(
+              req.budgetMax
+            )}
+                    </div>
+                    <span class="request-badge badge-${
+                      req.status
+                    }">${getStatusLabel(req.status)}</span>
+                </div>
+            `
+          )
+          .join("");
+      }
+
+      function formatBudget(amount) {
+        if (!amount) return "?";
+        return (amount / 1000000).toFixed(1) + "M";
+      }
+
+      function getStatusLabel(status) {
+        const labels = {
+          new: "جديد",
+          active: "نشط",
+          pending: "قيد المراجعة",
+          reassigned: "معاد تعيينه",
+        };
+        return labels[status] || status;
+      }
+
+      function selectRequest(request) {
+        currentRequestId = request.requestId;
+        messages = [];
+
+        // Update UI
+        document
+          .querySelectorAll(".request-item")
+          .forEach((el) => el.classList.remove("active"));
+        event.currentTarget.classList.add("active");
+
+        // Show chat UI
+        chatHeader.style.display = "block";
+        chatInputContainer.style.display = "block";
+        emptyState.style.display = "none";
+        analysisPanel.style.display = "block";
+
+        // Update header
+        document.getElementById("customerName").textContent =
+          request.customer?.name || "عميل #" + request.requestId;
+        document.getElementById("requestDetails").textContent = `📍 ${
+          request.area?.name || "غير محدد"
+        } | 💰 ${formatBudget(request.budgetMin)} - ${formatBudget(
+          request.budgetMax
+        )} | 🏠 ${request.unitType || "غير محدد"}`;
+
+        // Clear messages
+        chatMessages.innerHTML = `
+                <div class="message ai">
+                    <pre>مرحباً! أنا مساعدك لتحليل هذا الطلب. 
+                    
+يمكنك سؤالي عن:
+• تحليل شخصية العميل
+• مستوى الجدية والمخاطر
+• استراتيجية التواصل
+• نصائح للتفاوض
+
+جرب الضغط على أزرار الأسئلة السريعة أدناه 👇</pre>
+                    <div class="timestamp">${new Date().toLocaleTimeString(
+                      "ar-EG"
+                    )}</div>
+                </div>
+            `;
+
+        // Reset analysis panel
+        resetAnalysisPanel();
+
+        // Focus input
+        messageInput.focus();
+      }
+
+      function resetAnalysisPanel() {
+        document.getElementById("personalityType").textContent = "-";
+        document.getElementById("seriousnessLevel").textContent = "-";
+        document.getElementById("riskLevel").textContent = "-";
+        document.getElementById("riskLevel").className = "value";
+        document.getElementById("communicationTone").textContent = "-";
+        document.getElementById("riskIndicators").textContent =
+          "لا توجد تحذيرات";
+      }
+
+      async function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message || !currentRequestId) return;
+
+        // Add user message to chat
+        addMessage(message, "broker");
+        messageInput.value = "";
+        sendBtn.disabled = true;
+
+        // Add loading indicator
+        const loadingId = addLoadingMessage();
+
+        try {
+          const response = await fetch(`${API_BASE}/chat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              broker_id: currentBrokerId,
+              request_id: currentRequestId,
+              message: message,
+            }),
+          });
+
+          const data = await response.json();
+
+          // Remove loading
+          removeMessage(loadingId);
+
+          if (data.success) {
+            // Add AI response
+            addMessage(data.response, "ai");
+
+            // Update analysis panel
+            if (data.client_analysis) {
+              updateAnalysisPanel(data.client_analysis, data.strategy);
+            }
+          } else {
+            addMessage("❌ " + (data.error || "حدث خطأ"), "ai");
+          }
+        } catch (error) {
+          // Remove loading
+          removeMessage(loadingId);
+
+          // Show error with demo response
+          console.error("API Error:", error);
+          addMessage(
+            `⚠️ لا يمكن الاتصال بالخادم. تأكد من تشغيل الخدمة على المنفذ 8002.
+
+لتشغيل الخدمة:
+cd ai/broker_chatbot && ./run.sh`,
+            "ai"
+          );
+        }
+
+        sendBtn.disabled = false;
+        messageInput.focus();
+      }
+
+      function addMessage(content, type) {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = `message ${type}`;
+        msgDiv.id = "msg-" + Date.now();
+        msgDiv.innerHTML = `
+                <pre>${content}</pre>
+                <div class="timestamp">${new Date().toLocaleTimeString(
+                  "ar-EG"
+                )}</div>
+            `;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return msgDiv.id;
+      }
+
+      function addLoadingMessage() {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = "message ai";
+        msgDiv.id = "loading-" + Date.now();
+        msgDiv.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <span>جاري التحليل...</span>
+                </div>
+            `;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return msgDiv.id;
+      }
+
+      function removeMessage(id) {
+        const msg = document.getElementById(id);
+        if (msg) msg.remove();
+      }
+
+      function updateAnalysisPanel(analysis, strategy) {
+        if (analysis) {
+          document.getElementById("personalityType").textContent =
+            analysis.personality_type || "-";
+          document.getElementById("seriousnessLevel").textContent =
+            analysis.seriousness_level || "-";
+
+          const riskEl = document.getElementById("riskLevel");
+          riskEl.textContent = analysis.risk_level || "-";
+          riskEl.className =
+            "value risk-" +
+            (analysis.risk_level === "عالي"
+              ? "high"
+              : analysis.risk_level === "متوسط"
+              ? "medium"
+              : "low");
+
+          if (analysis.risk_indicators && analysis.risk_indicators.length > 0) {
+            document.getElementById("riskIndicators").innerHTML =
+              analysis.risk_indicators.map((r) => `• ${r}`).join("<br>");
+          }
+        }
+
+        if (strategy) {
+          document.getElementById("communicationTone").textContent =
+            strategy.communication_tone || "-";
+        }
+      }
+    </script>
+  </body>
+</html>
