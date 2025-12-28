@@ -7,12 +7,14 @@
 
 echo "🚀 Setting up environment variables for all services..."
 
+COHERE_API_KEY=\${1:-placeholder_key}
+
 # 1. Customer Chatbot
 echo "📝 Creating ai/customer_chatbot/.env"
 cat > ai/customer_chatbot/.env <<EOF
 GENERATOR_TYPE=cohere
 GEMINI_API_KEY=AIzaSyCr6-jbYUip5OD0gEYYpdjkNN1hp-1U8TA
-COHERE_API_KEY=KnobN1zL2vuObEJEEhRKhy3bANHkoYV4OXolcaLO
+COHERE_API_KEY=\$COHERE_API_KEY
 DATABASE_HOST=localhost
 DATABASE_PORT=5433
 DATABASE_USER=admin
@@ -27,7 +29,7 @@ EOF
 # 2. Broker Chatbot
 echo "📝 Creating ai/broker_chatbot/.env"
 cat > ai/broker_chatbot/.env <<EOF
-COHERE_API_KEY=KnobN1zL2vuObEJEEhRKhy3bANHkoYV4OXolcaLO
+COHERE_API_KEY=\$COHERE_API_KEY
 BACKEND_API_URL=http://localhost:3001/api
 EMBEDDING_SERVICE_URL=http://localhost:8001
 DATABASE_HOST=localhost
@@ -47,7 +49,7 @@ DEBUG=false
 LOG_LEVEL=INFO
 BACKEND_URL=http://localhost:3001/api
 BACKEND_TIMEOUT=30
-COHERE_API_KEY=KnobN1zL2vuObEJEEhRKhy3bANHkoYV4OXolcaLO
+COHERE_API_KEY=\$COHERE_API_KEY
 COHERE_MODEL=command-r7b-12-2024
 PASS_SCORE_THRESHOLD=75.0
 RED_FLAG_PENALTY=2.0

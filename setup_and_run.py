@@ -76,7 +76,30 @@ def kill_processes_on_ports():
     print("✅ Ports processed.")
 
 
+import argparse
+
+def get_api_key(cli_key=None):
+    """Get Cohere API Key from CLI argument or prompt user."""
+    if cli_key:
+        print(f"🔑 Using API Key provided via command line.")
+        return cli_key
+
+    print("\n🔑 API Key Configuration")
+    print("--------------------------------------------------")
+    print("Please enter your Cohere API Key to configure the AI services.")
+    print("If you don't have one, press Enter to use a placeholder (AI features may fail).")
+    api_key = input("Cohere API Key: ").strip()
+    if not api_key:
+        print("⚠️  No API key provided. Using placeholder.")
+        return "placeholder_key"
+    print("✅ API Key received.")
+    return api_key
+
 def main():
+    parser = argparse.ArgumentParser(description="Setup and Run Real Estate CRM")
+    parser.add_argument("--api-key", help="Cohere API Key", default=None)
+    args = parser.parse_args()
+
     system = platform.system()
     print(f"🖥️  Detected OS: {system}")
 
@@ -89,14 +112,19 @@ def main():
     # 0.5. Pre-pull images
     pull_images()
 
+    # 0.6 Get API Key
+    cohere_api_key = get_api_key(args.api_key)
+
     if system == "Windows":
         run_command(["powershell", "-ExecutionPolicy", "Bypass", "-Command", "chmod +x ./setup_envs.ps1"])
         print("\n--- Step 1: Setting up Environment Variables ---")
-        run_command(["powershell", "-ExecutionPolicy", "Bypass", "-File", ".\\setup_envs.ps1"])
+        # Pass API key as argument
+        run_command(["powershell", "-ExecutionPolicy", "Bypass", "-File", ".\\setup_envs.ps1", "-CohereApiKey", cohere_api_key])
     else:
         run_command(["chmod", "+x", "./setup_envs.sh"])
         print("\n--- Step 1: Setting up Environment Variables ---")
-        run_command(["./setup_envs.sh"])
+        # Pass API key as argument
+        run_command(["./setup_envs.sh", cohere_api_key])
 
     # 2. Sequential Build (critical for stability)
     print("\n--- Step 2: Building Services Sequentially ---")
