@@ -2,8 +2,8 @@
 -- Stores session state and cached analysis for broker chatbot interactions
 CREATE TABLE IF NOT EXISTS broker_chatbot_sessions (
     session_id SERIAL PRIMARY KEY,
-    broker_id INT REFERENCES brokers(broker_id) ON DELETE CASCADE,
-    request_id INT REFERENCES requests(request_id) ON DELETE CASCADE,
+    broker_id VARCHAR(21) REFERENCES brokers(broker_id) ON DELETE CASCADE,
+    request_id VARCHAR(21) REFERENCES requests(request_id) ON DELETE CASCADE,
     -- Session state
     session_state JSONB,
     -- LangGraph conversation state

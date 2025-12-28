@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     cohere_api_key: str = ""
     
     # Backend API
-    backend_api_url: str = "http://localhost:3000"
+    backend_api_url: str = "http://localhost:3001"
     
     # Embedding Service
     embedding_service_url: str = "http://localhost:8001"

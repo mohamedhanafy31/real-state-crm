@@ -1,0 +1,209 @@
+{
+  "name": "complete_flow_arabic",
+  "description": "Complete happy path: greeting → area → project → unit → budget → confirmation → request",
+  "test_type": "happy_path",
+  "phone_number": "20100000001_6791",
+  "original_phone": "20100000001",
+  "passed": false,
+  "message_results": [
+    {
+      "message": "اهلا",
+      "response": "أهلاً وسهلاً! أنا مساعدك في البحث عن العقارات.\n\nأقدر أساعدك في إيجاد وحدات في المناطق المتاحة لدينا:\n• Madinty\n• New Capital\n• North Coast\n• Sharm El Sheikh\n• Tagamoo\n\nحابب تبدأ البحث في أي منطقة؟",
+      "intent": "greeting",
+      "is_complete": false,
+      "extracted_requirements": {
+        "needs_garden": false,
+        "needs_roof": false
+      },
+      "checks_passed": [
+        "✅ intent: greeting",
+        "✅ response contains: 'أهلاً'",
+        "✅ response contains: 'منطقة'"
+      ]
+    },
+    {
+      "message": "العاصمة الادارية",
+      "response": "ممتاز! في **New Capital** عندنا مشاريع مميزة:  \n• Crystal Resort 2  \n• Crystal Towers 4  \n• Future View 7  \n• Green Heights 3  \n• Palm View 11  \n\n**تحب تحدد مشروع معين ولا ندور في المنطقة كلها؟**",
+      "intent": "new_search",
+      "is_complete": false,
+      "extracted_requirements": {
+        "needs_roof": false,
+        "needs_garden": false,
+        "area": "New Capital",
+        "area_id": 7
+      },
+      "checks_passed": [
+        "✅ intent: new_search",
+        "✅ has_area: True",
+        "✅ response contains: 'New Capital'",
+        "✅ response contains: 'مشاريع'"
+      ]
+    },
+    {
+      "message": "Green Heights 3",
+      "response": "ممتاز! **Green Heights 3** من المشاريع المميزة في العاصمة الإدارية. \n\n**تحب تعرف تفاصيل أكتر عن الوحدات المتاحة أو الأسعار؟**",
+      "intent": "inquiry",
+      "is_complete": false,
+      "extracted_requirements": {
+        "area": "New Capital",
+        "area_id": 7,
+        "needs_roof": false,
+        "needs_garden": false,
+        "project": "Green Heights 3",
+        "project_id": 91
+      },
+      "checks_passed": [
+        "✅ has_project: True",
+        "✅ response contains: 'Green Heights'"
+      ]
+    },
+    {
+      "message": "شقة",
+      "response": "في **Green Heights 3**، عندنا **5 وحدات سكنية** متاحة من نوع **Apartment**، وهذه عينة من الأسعار الحقيقية:\n\n1. **السعر**: 1,313,205 - **المساحة**: 93 متر²  \n2. **السعر**: 1,327,688 - **المساحة**: 64 م...",
+      "intent": "inquiry",
+      "is_complete": false,
+      "extracted_requirements": {
+        "area": "New Capital",
+        "area_id": 7,
+        "project": "Green Heights 3",
+        "needs_roof": false,
+        "project_id": 91,
+        "needs_garden": false,
+        "unit_type": "Apartment",
+        "unit_type_validated": true
+      },
+      "checks_passed": [
+        "✅ has_unit_type: True"
+      ]
+    },
+    {
+      "message": "5 مليون",
+      "response": "في **Green Heights 3**، نطاق الأسعار المتاح هو من **1,275,768** إلى **9,087,000**، مع وجود **253 وحدة** متاحة.\n\n**تحب أعرضلك الوحدات اللي سعرها قريب من 5 مليون؟**",
+      "intent": "inquiry",
+      "is_complete": false,
+      "extracted_requirements": {
+        "area": "New Capital",
+        "area_id": 7,
+        "project": "Green Heights 3",
+        "unit_type": "Apartment",
+        "needs_roof": false,
+        "project_id": 91,
+        "needs_garden": false,
+        "unit_type_validated": true,
+        "budget_min": 5000000
+      },
+      "checks_passed": [
+        "❌ is_complete: expected True, got False",
+        "❌ response should contain: 'تأكد'",
+        "❌ response should contain: 'تمام'"
+      ]
+    }
+  ],
+  "raw_responses": [
+    {
+      "message_index": 0,
+      "user_message": "اهلا",
+      "full_response": {
+        "phone_number": "20100000001_6791",
+        "response": "أهلاً وسهلاً! أنا مساعدك في البحث عن العقارات.\n\nأقدر أساعدك في إيجاد وحدات في المناطق المتاحة لدينا:\n• Madinty\n• New Capital\n• North Coast\n• Sharm El Sheikh\n• Tagamoo\n\nحابب تبدأ البحث في أي منطقة؟",
+        "intent": "greeting",
+        "extracted_requirements": {
+          "needs_garden": false,
+          "needs_roof": false
+        },
+        "is_complete": false,
+        "confirmation_buttons": null,
+        "should_ask_clarification": true,
+        "timestamp": "2025-12-26T14:29:05.473620"
+      }
+    },
+    {
+      "message_index": 1,
+      "user_message": "العاصمة الادارية",
+      "full_response": {
+        "phone_number": "20100000001_6791",
+        "response": "ممتاز! في **New Capital** عندنا مشاريع مميزة:  \n• Crystal Resort 2  \n• Crystal Towers 4  \n• Future View 7  \n• Green Heights 3  \n• Palm View 11  \n\n**تحب تحدد مشروع معين ولا ندور في المنطقة كلها؟**",
+        "intent": "new_search",
+        "extracted_requirements": {
+          "needs_roof": false,
+          "needs_garden": false,
+          "area": "New Capital",
+          "area_id": 7
+        },
+        "is_complete": false,
+        "confirmation_buttons": null,
+        "should_ask_clarification": true,
+        "timestamp": "2025-12-26T14:29:12.925897"
+      }
+    },
+    {
+      "message_index": 2,
+      "user_message": "Green Heights 3",
+      "full_response": {
+        "phone_number": "20100000001_6791",
+        "response": "ممتاز! **Green Heights 3** من المشاريع المميزة في العاصمة الإدارية. \n\n**تحب تعرف تفاصيل أكتر عن الوحدات المتاحة أو الأسعار؟**",
+        "intent": "inquiry",
+        "extracted_requirements": {
+          "area": "New Capital",
+          "area_id": 7,
+          "needs_roof": false,
+          "needs_garden": false,
+          "project": "Green Heights 3",
+          "project_id": 91
+        },
+        "is_complete": false,
+        "confirmation_buttons": null,
+        "should_ask_clarification": false,
+        "timestamp": "2025-12-26T14:29:19.628070"
+      }
+    },
+    {
+      "message_index": 3,
+      "user_message": "شقة",
+      "full_response": {
+        "phone_number": "20100000001_6791",
+        "response": "في **Green Heights 3**، عندنا **5 وحدات سكنية** متاحة من نوع **Apartment**، وهذه عينة من الأسعار الحقيقية:\n\n1. **السعر**: 1,313,205 - **المساحة**: 93 متر²  \n2. **السعر**: 1,327,688 - **المساحة**: 64 متر²  \n3. **السعر**: 1,339,118 - **المساحة**: 65 متر²  \n4. **السعر**: 1,345,648 - **المساحة**: 69 متر²  \n5. **السعر**: 1,383,714 - **المساحة**: 87 متر²  \n\n**تحب تفاصيل أكتر عن وحدة معينة؟**",
+        "intent": "inquiry",
+        "extracted_requirements": {
+          "area": "New Capital",
+          "area_id": 7,
+          "project": "Green Heights 3",
+          "needs_roof": false,
+          "project_id": 91,
+          "needs_garden": false,
+          "unit_type": "Apartment",
+          "unit_type_validated": true
+        },
+        "is_complete": false,
+        "confirmation_buttons": null,
+        "should_ask_clarification": false,
+        "timestamp": "2025-12-26T14:29:26.929538"
+      }
+    },
+    {
+      "message_index": 4,
+      "user_message": "5 مليون",
+      "full_response": {
+        "phone_number": "20100000001_6791",
+        "response": "في **Green Heights 3**، نطاق الأسعار المتاح هو من **1,275,768** إلى **9,087,000**، مع وجود **253 وحدة** متاحة.\n\n**تحب أعرضلك الوحدات اللي سعرها قريب من 5 مليون؟**",
+        "intent": "inquiry",
+        "extracted_requirements": {
+          "area": "New Capital",
+          "area_id": 7,
+          "project": "Green Heights 3",
+          "unit_type": "Apartment",
+          "needs_roof": false,
+          "project_id": 91,
+          "needs_garden": false,
+          "unit_type_validated": true,
+          "budget_min": 5000000
+        },
+        "is_complete": false,
+        "confirmation_buttons": null,
+        "should_ask_clarification": false,
+        "timestamp": "2025-12-26T14:29:35.357136"
+      }
+    }
+  ],
+  "errors": []
+}

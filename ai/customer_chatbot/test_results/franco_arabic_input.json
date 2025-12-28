@@ -1,0 +1,18 @@
+{
+  "name": "franco_arabic_input",
+  "description": "Handle Franco-Arabic (Arabizi) input",
+  "test_type": "franco_arabic",
+  "phone_number": "20100000015_5377",
+  "original_phone": "20100000015",
+  "passed": false,
+  "message_results": [],
+  "raw_responses": [],
+  "errors": [
+    "Message 1: ConnectError: [Errno 111] Connection refused",
+    "Message 2: ConnectError: [Errno 111] Connection refused",
+    "Message 3: ConnectError: [Errno 111] Connection refused",
+    "Message 4: ConnectError: [Errno 111] Connection refused",
+    "Message 5: ConnectError: [Errno 111] Connection refused",
+    "Message 6: ConnectError: [Errno 111] Connection refused"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "villa_search_flow",
+  "description": "Search for villa with specific requirements",
+  "test_type": "happy_path",
+  "phone_number": "20100000004_6831",
+  "original_phone": "20100000004",
+  "passed": false,
+  "message_results": [],
+  "raw_responses": [],
+  "errors": [
+    "Message 1: ConnectError: [Errno 111] Connection refused",
+    "Message 2: ConnectError: [Errno 111] Connection refused",
+    "Message 3: ConnectError: [Errno 111] Connection refused",
+    "Message 4: ConnectError: [Errno 111] Connection refused",
+    "Message 5: ConnectError: [Errno 111] Connection refused",
+    "Message 6: ConnectError: [Errno 111] Connection refused",
+    "Message 7: ConnectError: [Errno 111] Connection refused"
+  ]
+}

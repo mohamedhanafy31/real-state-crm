@@ -8,10 +8,11 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from '../entities/user.entity';
 import { Broker } from '../entities/broker.entity';
 import { BrokerArea } from '../entities/broker-area.entity';
+import { BrokerApplication } from '../entities/broker-application.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User, Broker, BrokerArea]),
+        TypeOrmModule.forFeature([User, Broker, BrokerArea, BrokerApplication]),
         PassportModule.register({ defaultStrategy: 'jwt' }),
         JwtModule.register({
             secret: process.env.JWT_SECRET || 'dev-secret-key-12345-change-in-production',

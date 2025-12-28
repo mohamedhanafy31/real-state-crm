@@ -12,15 +12,15 @@ from datetime import datetime
 class BrokerChatRequest(BaseModel):
     """Request body for broker chat endpoint."""
     
-    broker_id: int = Field(..., description="ID of the broker making the request")
-    request_id: int = Field(..., description="ID of the client request to analyze")
+    broker_id: str = Field(..., description="ID of the broker making the request")
+    request_id: str = Field(..., description="ID of the client request to analyze")
     message: str = Field(..., description="Broker's question or command", min_length=1)
     
     class Config:
         json_schema_extra = {
             "example": {
-                "broker_id": 1,
-                "request_id": 123,
+                "broker_id": "abc123",
+                "request_id": "xyz789",
                 "message": "حللي العميل ده وقولي ازاي اتعامل معاه"
             }
         }
@@ -55,7 +55,7 @@ class StrategyResponse(BaseModel):
 class RequestDataResponse(BaseModel):
     """Request details from CRM."""
     
-    request_id: int
+    request_id: str
     customer_name: Optional[str] = None
     area_name: Optional[str] = None
     unit_type: Optional[str] = None

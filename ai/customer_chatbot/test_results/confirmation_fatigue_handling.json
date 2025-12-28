@@ -1,0 +1,16 @@
+{
+  "name": "confirmation_fatigue_handling",
+  "description": "Bot should vary confirmation messages on multiple attempts",
+  "test_type": "multi_turn",
+  "phone_number": "20100000020_1262",
+  "original_phone": "20100000020",
+  "passed": false,
+  "message_results": [],
+  "raw_responses": [],
+  "errors": [
+    "Message 1: ConnectError: [Errno 111] Connection refused",
+    "Message 2: ConnectError: [Errno 111] Connection refused",
+    "Message 3: ConnectError: [Errno 111] Connection refused",
+    "Message 4: ConnectError: [Errno 111] Connection refused"
+  ]
+}

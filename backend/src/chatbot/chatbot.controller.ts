@@ -6,13 +6,19 @@ import {
     Query,
     Param,
     HttpCode,
+    UseGuards,
+    HttpException,
+    HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
+import axios from 'axios';
 import { RequestsService } from '../requests/requests.service';
 import { ProjectsService } from '../projects/projects.service';
 import { AreasService } from '../areas/areas.service';
 import { CreateCustomerDto } from '../requests/dto/create-customer.dto';
 import { CreateRequestDto } from '../requests/dto/create-request.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 /**
  * Public API endpoints for AI chatbot integration.
@@ -68,8 +74,8 @@ export class ChatbotController {
     searchUnits(
         @Query('area') area?: string,
         @Query('project') project?: string,
-        @Query('area_id') areaId?: number,
-        @Query('project_id') projectId?: number,
+        @Query('area_id') areaId?: string,
+        @Query('project_id') projectId?: string,
         @Query('unit_type') unitType?: string,
         @Query('budget_max') budgetMax?: number,
         @Query('budget_min') budgetMin?: number,
@@ -84,8 +90,8 @@ export class ChatbotController {
         return this.projectsService.searchUnits({
             area,
             project,
-            areaId: areaId ? Number(areaId) : undefined,
-            projectId: projectId ? Number(projectId) : undefined,
+            areaId,
+            projectId,
             unitType,
             budgetMax: budgetMax ? Number(budgetMax) : undefined,
             budgetMin: budgetMin ? Number(budgetMin) : undefined,
@@ -106,9 +112,9 @@ export class ChatbotController {
     @ApiResponse({ status: 200, description: 'Matching projects' })
     searchProjects(
         @Query('area') area?: string,
-        @Query('area_id') areaId?: number,
+        @Query('area_id') areaId?: string,
     ) {
-        return this.projectsService.searchProjects(area, areaId ? Number(areaId) : undefined);
+        return this.projectsService.searchProjects(area, areaId);
     }
 
     @Post('requests')
@@ -142,7 +148,7 @@ export class ChatbotController {
     @ApiResponse({ status: 200, description: 'Matching projects' })
     async searchProjectsFuzzy(
         @Query('q') query: string,
-        @Query('area_id') areaId?: number,
+        @Query('area_id') areaId?: string,
     ) {
         return this.projectsService.fuzzySearchProjects(query, areaId);
     }
@@ -188,22 +194,24 @@ export class ChatbotController {
     @ApiResponse({ status: 403, description: 'Access denied - broker not assigned to request' })
     @ApiResponse({ status: 404, description: 'Request not found' })
     async getRequestWithConversations(
-        @Param('requestId') requestId: number,
-        @Query('broker_id') brokerId: number,
+        @Param('requestId') requestId: string,
+        @Query('broker_id') brokerId: string,
     ) {
         return this.requestsService.getRequestWithConversationsForBroker(
-            Number(requestId),
-            Number(brokerId),
+            requestId,
+            brokerId,
         );
     }
 
     @Get('broker/requests/:requestId/conversations')
     @ApiOperation({ summary: 'Get conversations for a request (broker chatbot)' })
+    @ApiQuery({ name: 'context_type', required: false, enum: ['customer', 'broker'], description: 'Filter by conversation context' })
     @ApiResponse({ status: 200, description: 'List of conversations' })
     async getRequestConversations(
-        @Param('requestId') requestId: number,
+        @Param('requestId') requestId: string,
+        @Query('context_type') contextType?: 'customer' | 'broker',
     ) {
-        return this.requestsService.getRequestConversations(Number(requestId));
+        return this.requestsService.getRequestConversations(requestId, contextType);
     }
 
     @Post('conversations')
@@ -211,17 +219,21 @@ export class ChatbotController {
     @ApiResponse({ status: 201, description: 'Conversation saved' })
     async saveConversation(
         @Body() body: {
-            related_request_id: number;
+            related_request_id: string;
             actor_type: 'broker' | 'ai' | 'customer';
             message: string;
-            actor_id?: number;
+            actor_id?: string;
+            context_type?: 'customer' | 'broker';
         },
     ) {
+        // Auto-detect context_type if not provided
+        const contextType = body.context_type || (body.actor_type === 'broker' ? 'broker' : 'customer');
         return this.requestsService.saveConversation(
             body.related_request_id,
             body.actor_type,
             body.message,
             body.actor_id,
+            contextType,
         );
     }
 
@@ -230,8 +242,99 @@ export class ChatbotController {
     @ApiQuery({ name: 'broker_id', required: false, type: Number })
     @ApiResponse({ status: 200, description: 'List of requests' })
     async getAllRequestsForBroker(
-        @Query('broker_id') brokerId?: number,
+        @Query('broker_id') brokerId?: string,
     ) {
-        return this.requestsService.getAllRequestsForBrokerUI(brokerId ? Number(brokerId) : undefined);
+        return this.requestsService.getAllRequestsForBrokerUI(brokerId);
     }
+
+    @Get('broker/requests-with-conversations')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get only requests that have broker-AI conversations' })
+    @ApiResponse({ status: 200, description: 'List of requests with conversations' })
+    async getRequestsWithConversations(
+        @CurrentUser() user: any,
+    ) {
+        return this.requestsService.getRequestsWithBrokerConversations(user.userId);
+    }
+
+    // ========== Broker Chatbot Proxy Endpoints (Authenticated) ==========
+
+    @Post('broker/chat')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @HttpCode(200)
+    @ApiOperation({ summary: 'Chat with AI about a request (proxied to broker chatbot)' })
+    @ApiResponse({ status: 200, description: 'AI response' })
+    @ApiResponse({ status: 503, description: 'Chatbot service unavailable' })
+    async chatWithAI(
+        @CurrentUser() user: any,
+        @Body() body: {
+            request_id: string;
+            message: string;
+        },
+    ) {
+        const chatbotUrl = process.env.BROKER_CHATBOT_URL || 'http://localhost:8002';
+
+        try {
+            // Send string IDs - chatbot schema expects strings, not integers
+            const payload = {
+                broker_id: user.userId,
+                request_id: body.request_id,
+                message: body.message,
+            };
+            
+            console.log('Sending to broker chatbot:', JSON.stringify(payload, null, 2));
+            
+            const response = await axios.post(`${chatbotUrl}/api/chat`, payload);
+
+            return response.data;
+        } catch (error) {
+            console.error('Error communicating with broker chatbot:', error.message);
+            if (error.response) {
+                console.error('Chatbot response status:', error.response.status);
+                console.error('Chatbot response data:', JSON.stringify(error.response.data, null, 2));
+            }
+            throw new HttpException(
+                'Failed to communicate with AI chatbot',
+                HttpStatus.SERVICE_UNAVAILABLE,
+            );
+        }
+    }
+
+    @Get('broker/requests/:requestId/analysis')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get AI analysis summary for a request' })
+    @ApiResponse({ status: 200, description: 'AI analysis' })
+    @ApiResponse({ status: 503, description: 'Chatbot service unavailable' })
+    async getRequestAnalysis(
+        @CurrentUser() user: any,
+        @Param('requestId') requestId: string,
+    ) {
+        const chatbotUrl = process.env.BROKER_CHATBOT_URL || 'http://localhost:8002';
+
+        try {
+            console.log(`Getting AI analysis for request ${requestId}, broker ${user.userId}`);
+            
+            const response = await axios.get(
+                `${chatbotUrl}/api/requests/${requestId}/summary`,
+                {
+                    params: { broker_id: user.userId }, // Send as string, not parseInt
+                },
+            );
+
+            return response.data;
+        } catch (error) {
+            console.error('Error getting AI analysis:', error.message);
+            if (error.response) {
+                console.error('Chatbot response:', JSON.stringify(error.response.data, null, 2));
+            }
+            throw new HttpException(
+                'Failed to get AI analysis',
+                HttpStatus.SERVICE_UNAVAILABLE,
+            );
+        }
+    }
+
 }

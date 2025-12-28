@@ -47,7 +47,7 @@ describe('Authentication (e2e)', () => {
                 });
         });
 
-        it('should register a new broker', () => {
+        it('should register a new broker and return application (not JWT)', () => {
             return request(app.getHttpServer())
                 .post('/auth/register')
                 .send({
@@ -59,8 +59,11 @@ describe('Authentication (e2e)', () => {
                 })
                 .expect(201)
                 .expect((res) => {
-                    expect(res.body).toHaveProperty('access_token');
-                    brokerToken = res.body.access_token;
+                    // New flow: broker registration returns application, not JWT
+                    expect(res.body).toHaveProperty('application_id');
+                    expect(res.body).toHaveProperty('status', 'pending_interview');
+                    expect(res.body).toHaveProperty('interview_url');
+                    expect(res.body).not.toHaveProperty('access_token');
                 });
         });
 

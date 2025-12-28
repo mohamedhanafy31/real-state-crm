@@ -36,7 +36,7 @@ export class EmbeddingService {
    * Sync area embedding (create or update)
    * Fire-and-forget: doesn't block caller
    */
-  async syncArea(areaId: number, name: string, nameAr?: string): Promise<void> {
+  async syncArea(areaId: string, name: string, nameAr?: string): Promise<void> {
     const dto: SyncAreaDto = { area_id: areaId, name, name_ar: nameAr };
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
@@ -61,7 +61,7 @@ export class EmbeddingService {
    * Delete area embedding
    * Fire-and-forget: doesn't block caller
    */
-  async deleteArea(areaId: number): Promise<void> {
+  async deleteArea(areaId: string): Promise<void> {
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
         await firstValueFrom(
@@ -84,7 +84,7 @@ export class EmbeddingService {
    * Sync project embedding (create or update)
    * Fire-and-forget: doesn't block caller
    */
-  async syncProject(projectId: number, name: string, nameAr?: string, areaId?: number): Promise<void> {
+  async syncProject(projectId: string, name: string, nameAr?: string, areaId?: string): Promise<void> {
     const dto: SyncProjectDto = { project_id: projectId, name, name_ar: nameAr, area_id: areaId };
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
@@ -109,7 +109,7 @@ export class EmbeddingService {
    * Delete project embedding
    * Fire-and-forget: doesn't block caller
    */
-  async deleteProject(projectId: number): Promise<void> {
+  async deleteProject(projectId: string): Promise<void> {
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
         await firstValueFrom(

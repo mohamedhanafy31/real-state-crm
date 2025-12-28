@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Units Management Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#137fec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="flex h-screen">
+<!-- SideNavBar -->
+<aside class="flex w-64 flex-col bg-[#111a22] p-4 border-r border-gray-800">
+<div class="flex flex-col gap-4 mb-8">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-4xl">real_estate_agent</span>
+<h1 class="text-white text-xl font-bold">AI-Properties</h1>
+</div>
+<div class="flex gap-3 items-center mt-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Admin user profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDn2Lm6WokseyQSMgmVqJUlRus5Vf3SiF4GPNCirKvhj7fNAbliNKqiLtHS8BRF7ruvncVc3zbJkPr5UsjVpUQ7MZDT9Nn33O6Y15TGKY99mHLnBKCqx-BFX4LyNrk4o-lCjYuu82H8HflzQR-PRK85OVYK_HVnztF6lWyMpZEbpJa2WDY-VARD-BHwktyGS2Ds0o381o8GSGifL_9mhFz_SHM1C365TigTSzuDLpy8jVuhZzis9AGlq8BiDLPmwY6pnQuGgFEw8WE");'></div>
+<div class="flex flex-col">
+<h2 class="text-white text-base font-medium leading-normal">Admin Name</h2>
+<p class="text-[#92adc9] text-sm font-normal leading-normal">Administrator</p>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-2 flex-1">
+<a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-primary/20 hover:text-white rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<p class="text-sm font-medium leading-normal">Dashboard</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-primary/20 hover:text-white rounded-lg" href="#">
+<span class="material-symbols-outlined">apartment</span>
+<p class="text-sm font-medium leading-normal">Properties</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/20 text-white" href="#">
+<span class="material-symbols-outlined">grid_view</span>
+<p class="text-sm font-medium leading-normal">Units Management</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-primary/20 hover:text-white rounded-lg" href="#">
+<span class="material-symbols-outlined">people</span>
+<p class="text-sm font-medium leading-normal">Contacts</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-primary/20 hover:text-white rounded-lg" href="#">
+<span class="material-symbols-outlined">summarize</span>
+<p class="text-sm font-medium leading-normal">Reports</p>
+</a>
+</nav>
+<div class="flex flex-col gap-4 mt-auto">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90">
+<span class="truncate">New Inquiry</span>
+</button>
+<div class="flex flex-col gap-1 border-t border-gray-800 pt-4">
+<a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-primary/20 hover:text-white rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-sm font-medium leading-normal">Settings</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-gray-400 hover:bg-primary/20 hover:text-white rounded-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<p class="text-sm font-medium leading-normal">Help</p>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex-col overflow-y-auto">
+<div class="p-8">
+<!-- PageHeading -->
+<header class="flex flex-wrap justify-between items-center gap-4 mb-6">
+<div class="flex flex-col gap-2">
+<h1 class="text-gray-900 dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">Units Management</h1>
+<p class="text-gray-500 dark:text-[#92adc9] text-base font-normal leading-normal">Manage property unit inventory, edit details, and track availability.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-gray-200 dark:bg-[#233648] text-gray-800 dark:text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-gray-300 dark:hover:bg-[#324d67]">
+<span class="material-symbols-outlined text-lg">upload</span>
+<span class="truncate">Bulk Import</span>
+</button>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-primary/90">
+<span class="material-symbols-outlined text-lg">add</span>
+<span class="truncate">Add New Unit</span>
+</button>
+</div>
+</header>
+<!-- Search and Filters -->
+<div class="flex flex-wrap items-center gap-4 mb-4">
+<!-- SearchBar -->
+<div class="flex-grow">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-[#92adc9] flex bg-white dark:bg-[#233648] items-center justify-center pl-4 rounded-l-lg border border-gray-300 dark:border-[#324d67] border-r-0">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary border border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#233648] h-full placeholder:text-gray-500 dark:placeholder:text-[#92adc9] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Search by Unit Code, Project..." value=""/>
+</div>
+</label>
+</div>
+<!-- Chips/Filters -->
+<div class="flex gap-3 items-center">
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#233648] px-4 border border-gray-300 dark:border-[#324d67] hover:bg-gray-100 dark:hover:bg-[#324d67]">
+<span class="material-symbols-outlined text-lg text-gray-600 dark:text-white">filter_list</span>
+<p class="text-gray-800 dark:text-white text-sm font-medium leading-normal">Filter by Status</p>
+<span class="material-symbols-outlined text-lg text-gray-600 dark:text-white">expand_more</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-[#233648] px-4 border border-gray-300 dark:border-[#324d67] hover:bg-gray-100 dark:hover:bg-[#324d67]">
+<p class="text-gray-800 dark:text-white text-sm font-medium leading-normal">Filter by Project</p>
+<span class="material-symbols-outlined text-lg text-gray-600 dark:text-white">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Table -->
+<div class="overflow-hidden rounded-lg border border-gray-300 dark:border-[#324d67] bg-white dark:bg-[#111a22]">
+<div class="overflow-x-auto">
+<table class="w-full">
+<thead>
+<tr class="bg-gray-50 dark:bg-[#192633]">
+<th class="px-4 py-3 text-left text-gray-600 dark:text-white text-sm font-medium leading-normal">Unit Code</th>
+<th class="px-4 py-3 text-left text-gray-600 dark:text-white text-sm font-medium leading-normal">Project</th>
+<th class="px-4 py-3 text-left text-gray-600 dark:text-white text-sm font-medium leading-normal">Type</th>
+<th class="px-4 py-3 text-left text-gray-600 dark:text-white text-sm font-medium leading-normal">Size</th>
+<th class="px-4 py-3 text-left text-gray-600 dark:text-white text-sm font-medium leading-normal">Bedrooms</th>
+<th class="px-4 py-3 text-left text-gray-600 dark:text-white text-sm font-medium leading-normal">Price</th>
+<th class="px-4 py-3 text-left text-gray-600 dark:text-white text-sm font-medium leading-normal">Status</th>
+<th class="px-4 py-3 text-left text-gray-600 dark:text-[#92adc9] text-sm font-medium leading-normal">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-200 dark:divide-[#324d67]">
+<!-- Table Row 1 -->
+<tr>
+<td class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-medium leading-normal">U-101</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Skyline Towers</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Apartment</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">120 sqm</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">3</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">€500,000</td>
+<td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+<div class="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300">
+<span class="h-2 w-2 rounded-full bg-green-500"></span>
+                                            Available
+                                        </div>
+</td>
+<td class="h-[72px] px-4 py-2 text-[#92adc9]">
+<button class="text-gray-500 dark:text-[#92adc9] hover:text-primary"><span class="material-symbols-outlined">more_horiz</span></button>
+</td>
+</tr>
+<!-- Table Row 2 (Inline Edit Example) -->
+<tr class="bg-primary/5 dark:bg-primary/10">
+<td class="h-[72px] px-4 py-2"><input class="form-input w-full bg-white dark:bg-gray-800 border-primary rounded-md text-sm p-2" type="text" value="U-102"/></td>
+<td class="h-[72px] px-4 py-2"><input class="form-input w-full bg-white dark:bg-gray-800 border-primary rounded-md text-sm p-2" type="text" value="Skyline Towers"/></td>
+<td class="h-[72px] px-4 py-2"><input class="form-input w-full bg-white dark:bg-gray-800 border-primary rounded-md text-sm p-2" type="text" value="Apartment"/></td>
+<td class="h-[72px] px-4 py-2"><input class="form-input w-24 bg-white dark:bg-gray-800 border-primary rounded-md text-sm p-2" type="text" value="95 sqm"/></td>
+<td class="h-[72px] px-4 py-2"><input class="form-input w-16 bg-white dark:bg-gray-800 border-primary rounded-md text-sm p-2" type="text" value="2"/></td>
+<td class="h-[72px] px-4 py-2"><input class="form-input w-28 bg-white dark:bg-gray-800 border-primary rounded-md text-sm p-2" type="text" value="€420,000"/></td>
+<td class="h-[72px] px-4 py-2">
+<div class="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300">
+<span class="h-2 w-2 rounded-full bg-red-500"></span>
+                                            Sold
+                                        </div>
+</td>
+<td class="h-[72px] px-4 py-2">
+<div class="flex gap-2">
+<button class="text-white bg-primary rounded-md p-1.5 hover:bg-primary/90"><span class="material-symbols-outlined text-base">save</span></button>
+<button class="text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 rounded-md p-1.5 hover:bg-gray-300 dark:hover:bg-gray-600"><span class="material-symbols-outlined text-base">close</span></button>
+</div>
+</td>
+</tr>
+<!-- Table Row 3 -->
+<tr>
+<td class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-medium leading-normal">V-201</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Greenwood Villas</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Villa</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">300 sqm</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">5</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">€1,200,000</td>
+<td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+<div class="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300">
+<span class="h-2 w-2 rounded-full bg-green-500"></span>
+                                            Available
+                                        </div>
+</td>
+<td class="h-[72px] px-4 py-2">
+<button class="text-gray-500 dark:text-[#92adc9] hover:text-primary"><span class="material-symbols-outlined">more_horiz</span></button>
+</td>
+</tr>
+<!-- Table Row 4 -->
+<tr>
+<td class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-medium leading-normal">U-305</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Oceanfront Condos</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Condo</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">150 sqm</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">3</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">€750,000</td>
+<td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+<div class="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300">
+<span class="h-2 w-2 rounded-full bg-orange-500"></span>
+                                            Reserved
+                                        </div>
+</td>
+<td class="h-[72px] px-4 py-2">
+<button class="text-gray-500 dark:text-[#92adc9] hover:text-primary"><span class="material-symbols-outlined">more_horiz</span></button>
+</td>
+</tr>
+<!-- Table Row 5 -->
+<tr>
+<td class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-medium leading-normal">V-202</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Greenwood Villas</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Villa</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">280 sqm</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">4</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">€1,100,000</td>
+<td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+<div class="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300">
+<span class="h-2 w-2 rounded-full bg-green-500"></span>
+                                            Available
+                                        </div>
+</td>
+<td class="h-[72px] px-4 py-2">
+<button class="text-gray-500 dark:text-[#92adc9] hover:text-primary"><span class="material-symbols-outlined">more_horiz</span></button>
+</td>
+</tr>
+<!-- Table Row 6 -->
+<tr>
+<td class="h-[72px] px-4 py-2 text-gray-900 dark:text-white text-sm font-medium leading-normal">U-103</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Skyline Towers</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">Penthouse</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">250 sqm</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">4</td>
+<td class="h-[72px] px-4 py-2 text-gray-500 dark:text-[#92adc9] text-sm font-normal leading-normal">€1,500,000</td>
+<td class="h-[72px] px-4 py-2 text-sm font-normal leading-normal">
+<div class="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300">
+<span class="h-2 w-2 rounded-full bg-red-500"></span>
+                                            Sold
+                                        </div>
+</td>
+<td class="h-[72px] px-4 py-2">
+<button class="text-gray-500 dark:text-[#92adc9] hover:text-primary"><span class="material-symbols-outlined">more_horiz</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

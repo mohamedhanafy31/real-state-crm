@@ -83,7 +83,7 @@ class DatabaseService:
     
     def upsert_area_embedding(
         self, 
-        area_id: int, 
+        area_id: str, 
         name: str, 
         embedding_en: List[float],
         embedding_ar: List[float],
@@ -110,7 +110,7 @@ class DatabaseService:
             self.conn.rollback()
             return False
     
-    def delete_area_embedding(self, area_id: int) -> bool:
+    def delete_area_embedding(self, area_id: str) -> bool:
         """Delete area embedding."""
         try:
             with self.conn.cursor() as cur:
@@ -182,11 +182,11 @@ class DatabaseService:
     
     def upsert_project_embedding(
         self, 
-        project_id: int, 
+        project_id: str, 
         name: str, 
         embedding_en: List[float],
         embedding_ar: List[float],
-        area_id: Optional[int] = None,
+        area_id: Optional[str] = None,
         name_ar: Optional[str] = None
     ) -> bool:
         """Insert or update project embedding with dual vectors."""
@@ -210,7 +210,7 @@ class DatabaseService:
             self.conn.rollback()
             return False
     
-    def delete_project_embedding(self, project_id: int) -> bool:
+    def delete_project_embedding(self, project_id: str) -> bool:
         """Delete project embedding."""
         try:
             with self.conn.cursor() as cur:
@@ -226,7 +226,7 @@ class DatabaseService:
     def search_projects(
         self, 
         query_embedding: List[float], 
-        area_id: Optional[int] = None,
+        area_id: Optional[str] = None,
         top_k: int = 5
     ) -> List[Dict[str, Any]]:
         """Search for similar projects using pgvector."""
@@ -263,7 +263,7 @@ class DatabaseService:
         self, 
         query_embedding: List[float],
         language: str,
-        area_id: Optional[int] = None,
+        area_id: Optional[str] = None,
         top_k: int = 5
     ) -> List[Dict[str, Any]]:
         """Search for similar projects using language-specific vector.

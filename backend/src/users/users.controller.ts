@@ -55,7 +55,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Get user by ID' })
     @ApiResponse({ status: 200, description: 'User retrieved successfully' })
     @ApiResponse({ status: 404, description: 'User not found' })
-    findOne(@Param('id', ParseIntPipe) id: number) {
+    findOne(@Param('id') id: string) {
         return this.usersService.findOne(id);
     }
 
@@ -65,7 +65,7 @@ export class UsersController {
     @ApiResponse({ status: 200, description: 'User updated successfully' })
     @ApiResponse({ status: 404, description: 'User not found' })
     @ApiResponse({ status: 403, description: 'Forbidden - supervisor role required' })
-    update(@Param('id', ParseIntPipe) id: number, @Body() updateUserDto: UpdateUserDto) {
+    update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
         return this.usersService.updateUser(id, updateUserDto);
     }
 
@@ -75,7 +75,7 @@ export class UsersController {
     @ApiResponse({ status: 200, description: 'User status updated successfully' })
     @ApiResponse({ status: 404, description: 'User not found' })
     updateStatus(
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id') id: string,
         @Body('isActive') isActive: boolean,
     ) {
         return this.usersService.updateUserStatus(id, isActive);
@@ -87,7 +87,7 @@ export class UsersController {
     @ApiResponse({ status: 200, description: 'Areas assigned successfully' })
     @ApiResponse({ status: 404, description: 'Broker not found' })
     assignAreas(
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id') id: string,
         @Body() assignAreasDto: AssignAreasDto,
     ) {
         return this.usersService.assignAreas(id, assignAreasDto);
@@ -97,7 +97,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Get broker performance metrics' })
     @ApiResponse({ status: 200, description: 'Performance metrics retrieved successfully' })
     @ApiResponse({ status: 404, description: 'Broker not found' })
-    getBrokerPerformance(@Param('id', ParseIntPipe) id: number) {
+    getBrokerPerformance(@Param('id') id: string) {
         return this.usersService.getBrokerPerformance(id);
     }
 
@@ -106,7 +106,7 @@ export class UsersController {
     @ApiOperation({ summary: 'Delete user (supervisor and admin only)' })
     @ApiResponse({ status: 200, description: 'User deleted successfully' })
     @ApiResponse({ status: 404, description: 'User not found' })
-    delete(@Param('id', ParseIntPipe) id: number) {
+    delete(@Param('id') id: string) {
         return this.usersService.deleteUser(id);
     }
 }

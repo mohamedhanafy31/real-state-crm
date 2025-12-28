@@ -39,7 +39,7 @@ class ILLMService(ABC):
 class CohereLLMService(ILLMService):
     """Service for generating text using Cohere API."""
     
-    def __init__(self, api_key: str = None, model_name: str = "command-a-03-2025"):
+    def __init__(self, api_key: str = None, model_name: str = "command-r7b-12-2024"):
         """Initialize Cohere LLM service.
         
         Args:
@@ -166,9 +166,22 @@ class CohereLLMService(ILLMService):
         )
         logger.info(f"Generating response for broker message (length: {len(user_message)})")
         
+        # Detailed Input Logging
+        input_log = "\n=== LLM INPUT START ===\n"
+        for msg in messages:
+            role = msg.type if hasattr(msg, 'type') else 'unknown'
+            content = msg.content
+            input_log += f"[{role.upper()}]:\n{content}\n---\n"
+        input_log += "=== LLM INPUT END ===\n"
+        logger.info(input_log)
+        
         try:
             response = self.llm.invoke(messages)
-            logger.debug(f"Generated response (length: {len(response.content)})")
+            
+            # Detailed Output Logging
+            output_log = f"\n=== LLM OUTPUT START ===\n{response.content}\n=== LLM OUTPUT END ===\n"
+            logger.info(output_log)
+            
             return response.content
         except Exception as e:
             logger.error(f"Error generating response: {e}")

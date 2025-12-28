@@ -1,21 +1,30 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
+    PrimaryColumn,
     Column,
     CreateDateColumn,
     ManyToOne,
     JoinColumn,
+    BeforeInsert,
 } from 'typeorm';
 import { Reservation } from './reservation.entity';
 import { Broker } from './broker.entity';
+import { generateId } from '../utils/id-generator';
 
 @Entity('payment_records')
 export class PaymentRecord {
-    @PrimaryGeneratedColumn({ name: 'payment_id' })
-    paymentId: number;
+    @PrimaryColumn({ name: 'payment_id', type: 'varchar', length: 21 })
+    paymentId: string;
 
-    @Column({ name: 'reservation_id' })
-    reservationId: number;
+    @BeforeInsert()
+    generateId() {
+        if (!this.paymentId) {
+            this.paymentId = generateId();
+        }
+    }
+
+    @Column({ name: 'reservation_id', type: 'varchar', length: 21 })
+    reservationId: string;
 
     @Column({ type: 'float', name: 'paid_amount' })
     paidAmount: number;
@@ -26,8 +35,8 @@ export class PaymentRecord {
     @Column({ type: 'varchar', length: 50, name: 'payment_method' })
     paymentMethod: string;
 
-    @Column({ name: 'recorded_by_broker_id', nullable: true })
-    recordedByBrokerId: number | null;
+    @Column({ name: 'recorded_by_broker_id', type: 'varchar', length: 21, nullable: true })
+    recordedByBrokerId: string | null;
 
     @Column({ type: 'text', nullable: true })
     notes: string;

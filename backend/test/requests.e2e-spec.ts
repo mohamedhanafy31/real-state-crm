@@ -6,8 +6,8 @@ import { AppModule } from './../src/app.module';
 describe('Customers & Requests (e2e)', () => {
     let app: INestApplication;
     let token: string;
-    let customerId: number;
-    let requestId: number;
+    let customerId: string;
+    let requestId: string;
     const timestamp = Date.now();
 
     beforeAll(async () => {

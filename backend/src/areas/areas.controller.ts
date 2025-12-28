@@ -33,7 +33,7 @@ export class AreasController {
     @ApiOperation({ summary: 'Get area by ID' })
     @ApiResponse({ status: 200, description: 'Area retrieved successfully' })
     @ApiResponse({ status: 404, description: 'Area not found' })
-    findOne(@Param('id', ParseIntPipe) id: number) {
+    findOne(@Param('id') id: string) {
         return this.areasService.findOne(id);
     }
 
@@ -56,7 +56,7 @@ export class AreasController {
     @ApiResponse({ status: 200, description: 'Area updated successfully' })
     @ApiResponse({ status: 404, description: 'Area not found' })
     update(
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id') id: string,
         @Body() updateAreaDto: UpdateAreaDto,
     ) {
         return this.areasService.update(id, updateAreaDto);
@@ -69,7 +69,7 @@ export class AreasController {
     @ApiOperation({ summary: 'Delete an area (supervisor only)' })
     @ApiResponse({ status: 200, description: 'Area deleted successfully' })
     @ApiResponse({ status: 404, description: 'Area not found' })
-    delete(@Param('id', ParseIntPipe) id: number) {
+    delete(@Param('id') id: string) {
         return this.areasService.delete(id);
     }
 }

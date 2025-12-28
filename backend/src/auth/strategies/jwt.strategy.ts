@@ -24,7 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         const user = await this.authService.validateUser(payload.userId);
 
         // Fetch broker areas if user is a broker
-        let areaIds: number[] = [];
+        let areaIds: string[] = [];
         if (user.role === 'broker') {
             const brokerAreas = await this.brokerAreaRepository.find({
                 where: { brokerId: user.userId },

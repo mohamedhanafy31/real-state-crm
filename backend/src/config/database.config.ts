@@ -11,6 +11,9 @@ import { Unit } from '../entities/unit.entity';
 import { Reservation } from '../entities/reservation.entity';
 import { PaymentRecord } from '../entities/payment-record.entity';
 import { Conversation } from '../entities/conversation.entity';
+import { BrokerApplication } from '../entities/broker-application.entity';
+import { InterviewSession } from '../entities/interview-session.entity';
+import { InterviewResponse } from '../entities/interview-response.entity';
 
 export const typeOrmConfig = (): TypeOrmModuleOptions => ({
     type: 'postgres',
@@ -32,6 +35,9 @@ export const typeOrmConfig = (): TypeOrmModuleOptions => ({
         Reservation,
         PaymentRecord,
         Conversation,
+        BrokerApplication,
+        InterviewSession,
+        InterviewResponse,
     ],
     synchronize: process.env.NODE_ENV === 'development', // Auto-sync in dev mode only
     logging: process.env.NODE_ENV === 'development',

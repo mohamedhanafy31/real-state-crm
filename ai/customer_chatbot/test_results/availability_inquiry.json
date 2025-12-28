@@ -1,0 +1,13 @@
+{
+  "name": "availability_inquiry",
+  "description": "Check unit availability",
+  "test_type": "inquiry_flow",
+  "phone_number": "20100000012_1360",
+  "original_phone": "20100000012",
+  "passed": false,
+  "message_results": [],
+  "raw_responses": [],
+  "errors": [
+    "Message 1: ConnectError: [Errno 111] Connection refused"
+  ]
+}

@@ -1,0 +1,322 @@
+{
+  "timestamp": "2025-12-26 14:28:52",
+  "total": 20,
+  "passed": 0,
+  "failed": 20,
+  "results": [
+    {
+      "name": "complete_flow_arabic",
+      "description": "Complete happy path: greeting → area → project → unit → budget → confirmation → request",
+      "test_type": "happy_path",
+      "phone_number": "20100000001_2476",
+      "original_phone": "20100000001",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused",
+        "Message 4: ConnectError: [Errno 111] Connection refused",
+        "Message 5: ConnectError: [Errno 111] Connection refused",
+        "Message 6: ConnectError: [Errno 111] Connection refused",
+        "Message 7: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "complete_flow_english",
+      "description": "Complete flow in English",
+      "test_type": "happy_path",
+      "phone_number": "20100000002_7939",
+      "original_phone": "20100000002",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused",
+        "Message 4: ConnectError: [Errno 111] Connection refused",
+        "Message 5: ConnectError: [Errno 111] Connection refused",
+        "Message 6: ConnectError: [Errno 111] Connection refused",
+        "Message 7: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "quick_complete_flow",
+      "description": "User provides all info in one message",
+      "test_type": "happy_path",
+      "phone_number": "20100000003_6489",
+      "original_phone": "20100000003",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "villa_search_flow",
+      "description": "Search for villa with specific requirements",
+      "test_type": "happy_path",
+      "phone_number": "20100000004_6831",
+      "original_phone": "20100000004",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused",
+        "Message 4: ConnectError: [Errno 111] Connection refused",
+        "Message 5: ConnectError: [Errno 111] Connection refused",
+        "Message 6: ConnectError: [Errno 111] Connection refused",
+        "Message 7: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "townhouse_tagamoo_flow",
+      "description": "Townhouse in Tagamoo area",
+      "test_type": "happy_path",
+      "phone_number": "20100000005_8957",
+      "original_phone": "20100000005",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused",
+        "Message 4: ConnectError: [Errno 111] Connection refused",
+        "Message 5: ConnectError: [Errno 111] Connection refused",
+        "Message 6: ConnectError: [Errno 111] Connection refused",
+        "Message 7: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "multi_word_confirmation_arabic",
+      "description": "Multi-word Arabic confirmation should NOT trigger update_requirements",
+      "test_type": "confirmation_flow",
+      "phone_number": "20100000006_5927",
+      "original_phone": "20100000006",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "single_word_confirmation",
+      "description": "Single word confirmation",
+      "test_type": "confirmation_flow",
+      "phone_number": "20100000007_2985",
+      "original_phone": "20100000007",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "confirmation_with_emoji",
+      "description": "Confirmation using thumbs up emoji",
+      "test_type": "confirmation_flow",
+      "phone_number": "20100000008_5692",
+      "original_phone": "20100000008",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "confirmation_then_name",
+      "description": "Confirmation followed by name/phone should complete request",
+      "test_type": "confirmation_flow",
+      "phone_number": "20100000009_9927",
+      "original_phone": "20100000009",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "rejection_then_edit",
+      "description": "User rejects confirmation and edits requirements",
+      "test_type": "confirmation_flow",
+      "phone_number": "20100000010_8931",
+      "original_phone": "20100000010",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused",
+        "Message 4: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "price_inquiry_with_project",
+      "description": "Price inquiry for specific project",
+      "test_type": "inquiry_flow",
+      "phone_number": "20100000011_2040",
+      "original_phone": "20100000011",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused",
+        "Message 4: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "availability_inquiry",
+      "description": "Check unit availability",
+      "test_type": "inquiry_flow",
+      "phone_number": "20100000012_1360",
+      "original_phone": "20100000012",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "project_comparison",
+      "description": "Compare two projects",
+      "test_type": "inquiry_flow",
+      "phone_number": "20100000013_9741",
+      "original_phone": "20100000013",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "general_question",
+      "description": "General question about payment plans",
+      "test_type": "inquiry_flow",
+      "phone_number": "20100000014_7227",
+      "original_phone": "20100000014",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "franco_arabic_input",
+      "description": "Handle Franco-Arabic (Arabizi) input",
+      "test_type": "franco_arabic",
+      "phone_number": "20100000015_5377",
+      "original_phone": "20100000015",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused",
+        "Message 4: ConnectError: [Errno 111] Connection refused",
+        "Message 5: ConnectError: [Errno 111] Connection refused",
+        "Message 6: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "typo_handling",
+      "description": "Handle common typos",
+      "test_type": "edge_case",
+      "phone_number": "20100000016_9421",
+      "original_phone": "20100000016",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "cancel_and_restart",
+      "description": "User cancels and starts new search",
+      "test_type": "error_recovery",
+      "phone_number": "20100000017_3972",
+      "original_phone": "20100000017",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused",
+        "Message 4: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "empty_and_noise_messages",
+      "description": "Handle empty and noise messages gracefully",
+      "test_type": "edge_case",
+      "phone_number": "20100000018_2204",
+      "original_phone": "20100000018",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "session_persistence",
+      "description": "Session should persist across messages",
+      "test_type": "multi_turn",
+      "phone_number": "20100000019_2167",
+      "original_phone": "20100000019",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused"
+      ]
+    },
+    {
+      "name": "confirmation_fatigue_handling",
+      "description": "Bot should vary confirmation messages on multiple attempts",
+      "test_type": "multi_turn",
+      "phone_number": "20100000020_1262",
+      "original_phone": "20100000020",
+      "passed": false,
+      "message_results": [],
+      "raw_responses": [],
+      "errors": [
+        "Message 1: ConnectError: [Errno 111] Connection refused",
+        "Message 2: ConnectError: [Errno 111] Connection refused",
+        "Message 3: ConnectError: [Errno 111] Connection refused",
+        "Message 4: ConnectError: [Errno 111] Connection refused"
+      ]
+    }
+  ]
+}

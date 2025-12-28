@@ -1,30 +1,39 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
+    PrimaryColumn,
     Column,
     CreateDateColumn,
     ManyToOne,
     JoinColumn,
     OneToMany,
+    BeforeInsert,
 } from 'typeorm';
 import { Request } from './request.entity';
 import { Unit } from './unit.entity';
 import { Broker } from './broker.entity';
 import { PaymentRecord } from './payment-record.entity';
+import { generateId } from '../utils/id-generator';
 
 @Entity('reservations')
 export class Reservation {
-    @PrimaryGeneratedColumn({ name: 'reservation_id' })
-    reservationId: number;
+    @PrimaryColumn({ name: 'reservation_id', type: 'varchar', length: 21 })
+    reservationId: string;
 
-    @Column({ name: 'request_id' })
-    requestId: number;
+    @BeforeInsert()
+    generateId() {
+        if (!this.reservationId) {
+            this.reservationId = generateId();
+        }
+    }
 
-    @Column({ name: 'unit_id' })
-    unitId: number;
+    @Column({ name: 'request_id', type: 'varchar', length: 21 })
+    requestId: string;
 
-    @Column({ name: 'broker_id', nullable: true })
-    brokerId: number | null;
+    @Column({ name: 'unit_id', type: 'varchar', length: 21 })
+    unitId: string;
+
+    @Column({ name: 'broker_id', type: 'varchar', length: 21, nullable: true })
+    brokerId: string | null;
 
     @Column({ type: 'float', name: 'total_unit_price' })
     totalUnitPrice: number;

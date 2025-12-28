@@ -59,6 +59,10 @@ class ConversationState(TypedDict, total=False):
     is_complete: bool
     confirmed: bool  # User confirmed requirements
     
+    # Project Suggestion Logic
+    should_suggest_projects: bool  # Logic decided to suggest projects
+    project_suggested: bool        # Suggestion question has been asked
+    
     # Name validation (Phase 4)
     names_validated: bool  # All names matched against DB
     pending_correction: Optional[dict]  # Name needing correction
@@ -80,6 +84,7 @@ class ConversationState(TypedDict, total=False):
     available_areas: Optional[List[dict]]
     area_not_found: Optional[str]
     inquiry_results: Optional[Any]  # For general inquiries (projects, areas, etc.)
+    inquiry_classification: Optional[dict]  # Smart Router classification result
     
     # Metadata
     timestamp: str

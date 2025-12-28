@@ -1,10 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from 'typeorm';
+import { Entity, PrimaryColumn, Column, CreateDateColumn, OneToMany, BeforeInsert } from 'typeorm';
 import { Request } from './request.entity';
+import { generateId } from '../utils/id-generator';
 
 @Entity('customers')
 export class Customer {
-    @PrimaryGeneratedColumn({ name: 'customer_id' })
-    customerId: number;
+    @PrimaryColumn({ name: 'customer_id', type: 'varchar', length: 21 })
+    customerId: string;
+
+    @BeforeInsert()
+    generateId() {
+        if (!this.customerId) {
+            this.customerId = generateId();
+        }
+    }
 
     @Column({ type: 'varchar', length: 255 })
     name: string;

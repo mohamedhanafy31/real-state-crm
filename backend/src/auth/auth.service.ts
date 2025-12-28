@@ -1,11 +1,12 @@
-import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
+import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt';
 import { User } from '../entities/user.entity';
 import { Broker } from '../entities/broker.entity';
 import { BrokerArea } from '../entities/broker-area.entity';
+import { BrokerApplication } from '../entities/broker-application.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -20,11 +21,13 @@ export class AuthService {
         private readonly brokerRepository: Repository<Broker>,
         @InjectRepository(BrokerArea)
         private readonly brokerAreaRepository: Repository<BrokerArea>,
+        @InjectRepository(BrokerApplication)
+        private readonly applicationRepository: Repository<BrokerApplication>,
         private readonly jwtService: JwtService,
         private readonly logger: AppLoggerService,
     ) { }
 
-    async register(registerDto: RegisterDto): Promise<{ access_token: string; user: any }> {
+    async register(registerDto: RegisterDto): Promise<{ access_token?: string; user?: any; application_id?: string; status?: string; interview_url?: string }> {
         const { phone, password, name, email, role, areaIds } = registerDto;
         this.logger.log(`Registration attempt for phone: ${phone}, role: ${role}`, 'AuthService');
 
@@ -35,36 +38,50 @@ export class AuthService {
             throw new UnauthorizedException('User with this phone already exists');
         }
 
-        // Hash password
-        const password_hash = await bcrypt.hash(password, 10);
+        // BROKER REGISTRATION: Create application instead of user
+        if (role === 'broker') {
+            // Check if application already exists
+            const existingApp = await this.applicationRepository.findOne({ where: { applicantPhone: phone } });
+            if (existingApp) {
+                this.logger.warn(`Registration failed: Application with phone ${phone} already exists`, 'AuthService');
+                throw new BadRequestException('Application with this phone already exists. Please complete your interview.');
+            }
 
-        // Create user
+            // Hash password
+            const passwordHash = await bcrypt.hash(password, 10);
+
+            // Create application
+            const application = this.applicationRepository.create({
+                applicantPhone: phone,
+                applicantName: name,
+                applicantEmail: email,
+                passwordHash,
+                requestedAreaIds: areaIds || [],
+                status: 'pending_interview',
+            });
+
+            const savedApp = await this.applicationRepository.save(application);
+            this.logger.log(`Broker application created: applicationId=${savedApp.applicationId}, phone=${phone}`, 'AuthService');
+
+            return {
+                application_id: savedApp.applicationId,
+                status: 'pending_interview',
+                interview_url: `/interview/${savedApp.applicationId}`,
+            };
+        }
+
+        // SUPERVISOR REGISTRATION: Immediate activation (existing flow)
+        const passwordHash = await bcrypt.hash(password, 10);
+
         const user = this.userRepository.create({
             phone,
-            password_hash,
+            passwordHash,
             name,
             email,
             role,
         });
 
         const savedUser = await this.userRepository.save(user);
-
-        // Create broker record if role is broker
-        if (role === 'broker') {
-            const broker = this.brokerRepository.create({
-                brokerId: savedUser.userId,
-                // Default values are set in entity
-            });
-            await this.brokerRepository.save(broker);
-
-            // Assign areas to broker if provided
-            if (areaIds && areaIds.length > 0) {
-                const brokerAreas = areaIds.map((areaId) =>
-                    this.brokerAreaRepository.create({ brokerId: savedUser.userId, areaId }),
-                );
-                await this.brokerAreaRepository.save(brokerAreas);
-            }
-        }
 
         // Generate JWT token
         const payload = { userId: savedUser.userId, phone: savedUser.phone, role: savedUser.role };
@@ -85,14 +102,14 @@ export class AuthService {
         };
     }
 
-    async login(loginDto: LoginDto): Promise<{ access_token: string; user: { userId: number; phone: string; email: string | null; name: string; role: string; isActive: boolean; areaIds: number[] } }> {
+    async login(loginDto: LoginDto): Promise<{ access_token: string; user: { userId: string; phone: string; email: string | null; name: string; role: string; isActive: boolean; areaIds: string[] } }> {
         const { phone, password } = loginDto;
         this.logger.log(`Login attempt for phone: ${phone}`, 'AuthService');
 
         // Find user with password field (normally excluded)
         const user = await this.userRepository
             .createQueryBuilder('user')
-            .addSelect('user.password_hash')
+            .addSelect('user.passwordHash')
             .where('user.phone = :phone', { phone })
             .getOne();
 
@@ -108,11 +125,11 @@ export class AuthService {
         }
 
         // Verify password
-        if (!user.password_hash) {
+        if (!user.passwordHash) {
             throw new UnauthorizedException('Password not set for this user');
         }
 
-        const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+        const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
         if (!isPasswordValid) {
             this.logger.warn(`Login failed: Invalid password for phone ${phone}`, 'AuthService');
             throw new UnauthorizedException('Invalid credentials');
@@ -125,7 +142,7 @@ export class AuthService {
         this.logger.log(`User logged in successfully: userId=${user.userId}, phone=${phone}, role=${user.role}`, 'AuthService');
 
         // Fetch areaIds if broker
-        let areaIds: number[] = [];
+        let areaIds: string[] = [];
         if (user.role === 'broker') {
             const brokerAreas = await this.brokerAreaRepository.find({
                 where: { brokerId: user.userId },
@@ -148,7 +165,7 @@ export class AuthService {
         };
     }
 
-    async validateUser(userId: number): Promise<User> {
+    async validateUser(userId: string): Promise<User> {
         const user = await this.userRepository.findOne({ where: { userId } });
         if (!user) {
             throw new UnauthorizedException('User not found');
@@ -159,7 +176,7 @@ export class AuthService {
         return user;
     }
 
-    async updateProfile(userId: number, updateProfileDto: UpdateProfileDto): Promise<User> {
+    async updateProfile(userId: string, updateProfileDto: UpdateProfileDto): Promise<User> {
         this.logger.log(`Profile update attempt for userId=${userId}`, 'AuthService');
         const user = await this.userRepository.findOne({ where: { userId } });
         if (!user) {
@@ -186,7 +203,7 @@ export class AuthService {
         return this.userRepository.save(user);
     }
 
-    async updateAreas(userId: number, areaIds: number[]): Promise<{ areaIds: number[] }> {
+    async updateAreas(userId: string, areaIds: string[]): Promise<{ areaIds: string[] }> {
         // Verify user is a broker
         const user = await this.userRepository.findOne({ where: { userId } });
         if (!user || user.role !== 'broker') {

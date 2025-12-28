@@ -50,7 +50,7 @@ export class RequestsService {
         return query.getMany();
     }
 
-    async findCustomer(customerId: number): Promise<Customer> {
+    async findCustomer(customerId: string): Promise<Customer> {
         const customer = await this.customerRepository.findOne({
             where: { customerId },
             relations: ['requests', 'requests.area', 'requests.assignedBroker', 'requests.assignedBroker.user'],
@@ -76,7 +76,7 @@ export class RequestsService {
         }
 
         // Auto-assign broker if not provided
-        let brokerId: number | null = assignedBrokerId || null;
+        let brokerId: string | null = assignedBrokerId || null;
         if (!brokerId) {
             brokerId = await this.findAvailableBroker(areaId);
             this.logger.log(`Auto-assigned broker: brokerId=${brokerId} for areaId=${areaId}`, 'RequestsService');
@@ -142,7 +142,7 @@ export class RequestsService {
         return query.getMany();
     }
 
-    async findRequest(requestId: number): Promise<Request> {
+    async findRequest(requestId: string): Promise<Request> {
         const request = await this.requestRepository.findOne({
             where: { requestId },
             relations: [
@@ -161,7 +161,7 @@ export class RequestsService {
         return request;
     }
 
-    async updateRequest(requestId: number, updateRequestDto: UpdateRequestDto): Promise<Request> {
+    async updateRequest(requestId: string, updateRequestDto: UpdateRequestDto): Promise<Request> {
         const request = await this.findRequest(requestId);
         const oldStatus = request.status;
 
@@ -185,7 +185,7 @@ export class RequestsService {
         return this.findRequest(requestId);
     }
 
-    async reassignRequest(requestId: number, reassignDto: ReassignRequestDto): Promise<Request> {
+    async reassignRequest(requestId: string, reassignDto: ReassignRequestDto): Promise<Request> {
         this.logger.log(`Reassigning request: requestId=${requestId} to brokerId=${reassignDto.brokerId}`, 'RequestsService');
         const request = await this.findRequest(requestId);
         const oldBrokerId = request.assignedBrokerId;
@@ -214,7 +214,7 @@ export class RequestsService {
         return this.findRequest(requestId);
     }
 
-    async getRequestHistory(requestId: number): Promise<RequestStatusHistory[]> {
+    async getRequestHistory(requestId: string): Promise<RequestStatusHistory[]> {
         return this.statusHistoryRepository.find({
             where: { requestId },
             order: { createdAt: 'ASC' },
@@ -222,7 +222,7 @@ export class RequestsService {
     }
 
     // Helper methods
-    private async findAvailableBroker(areaId: number): Promise<number | null> {
+    private async findAvailableBroker(areaId: string): Promise<string | null> {
         const brokerArea = await this.brokerAreaRepository.findOne({
             where: { areaId },
             relations: ['broker'],
@@ -232,12 +232,12 @@ export class RequestsService {
     }
 
     private async logStatusChange(
-        requestId: number,
+        requestId: string,
         oldStatus: string | null,
         newStatus: string,
         changedBy: string,
-        fromBrokerId: number | null,
-        toBrokerId: number | null,
+        fromBrokerId: string | null,
+        toBrokerId: string | null,
         notes?: string,
     ): Promise<void> {
         const history = this.statusHistoryRepository.create({
@@ -271,8 +271,8 @@ export class RequestsService {
      * Verifies broker has access to the request.
      */
     async getRequestWithConversationsForBroker(
-        requestId: number,
-        brokerId: number,
+        requestId: string,
+        brokerId: string,
     ): Promise<Request> {
         this.logger.log(
             `Broker ${brokerId} requesting access to request ${requestId}`,
@@ -314,11 +314,15 @@ export class RequestsService {
     }
 
     /**
-     * Get conversations for a request.
-     */
-    async getRequestConversations(requestId: number): Promise<Conversation[]> {
+ * Get conversations for a request.
+ */
+    async getRequestConversations(requestId: string, contextType?: 'customer' | 'broker'): Promise<Conversation[]> {
+        const where: any = { relatedRequestId: requestId };
+        if (contextType) {
+            where.contextType = contextType;
+        }
         return this.conversationRepository.find({
-            where: { relatedRequestId: requestId },
+            where,
             order: { createdAt: 'ASC' },
         });
     }
@@ -327,21 +331,23 @@ export class RequestsService {
      * Save a conversation message.
      */
     async saveConversation(
-        requestId: number,
+        requestId: string,
         actorType: 'broker' | 'ai' | 'customer',
         message: string,
-        actorId?: number,
+        actorId?: string,
+        contextType: 'customer' | 'broker' = 'customer',
     ): Promise<Conversation> {
         const conversation = this.conversationRepository.create({
             relatedRequestId: requestId,
             actorType: actorType,
             message: message,
-            actorId: actorId || 0,  // 0 for AI messages
+            actorId: actorId || 'system',
+            contextType: contextType,
         });
 
         const saved = await this.conversationRepository.save(conversation);
         this.logger.log(
-            `Saved ${actorType} conversation for request ${requestId}`,
+            `Saved ${actorType} conversation (context: ${contextType}) for request ${requestId}`,
             'RequestsService',
         );
         return saved;
@@ -350,7 +356,7 @@ export class RequestsService {
     /**
      * Get all requests for broker UI.
      */
-    async getAllRequestsForBrokerUI(brokerId?: number): Promise<Request[]> {
+    async getAllRequestsForBrokerUI(brokerId?: string): Promise<Request[]> {
         const query = this.requestRepository
             .createQueryBuilder('request')
             .leftJoinAndSelect('request.customer', 'customer')
@@ -365,5 +371,33 @@ export class RequestsService {
         query.orderBy('request.createdAt', 'DESC');
 
         return query.getMany();
+    }
+
+    /**
+     * Get only requests that have broker-AI conversations.
+     */
+    async getRequestsWithBrokerConversations(brokerId: string): Promise<Request[]> {
+        const requests = await this.requestRepository
+            .createQueryBuilder('request')
+            .leftJoinAndSelect('request.customer', 'customer')
+            .leftJoinAndSelect('request.area', 'area')
+            .leftJoinAndSelect('request.assignedBroker', 'broker')
+            .leftJoinAndSelect('broker.user', 'user')
+            .innerJoin(
+                'request.conversations',
+                'conversation',
+                'conversation.contextType = :contextType',
+                { contextType: 'broker' }
+            )
+            .where('request.assignedBrokerId = :brokerId', { brokerId })
+            .orderBy('request.updatedAt', 'DESC')
+            .getMany();
+
+        this.logger.log(
+            `Found ${requests.length} requests with broker conversations for broker ${brokerId}`,
+            'RequestsService',
+        );
+
+        return requests;
     }
 }

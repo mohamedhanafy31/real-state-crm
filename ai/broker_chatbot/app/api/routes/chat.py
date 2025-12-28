@@ -46,6 +46,9 @@ async def chat(request: BrokerChatRequest) -> BrokerChatResponse:
     """
     logger.info(f"Chat request from broker {request.broker_id} for request {request.request_id}")
     
+    # Detailed Input Logging
+    logger.info(f"\n=== API ENDPOINT INPUT START ===\n{request.model_dump_json(indent=2)}\n=== API ENDPOINT INPUT END ===\n")
+    
     try:
         # Get the workflow
         workflow = get_workflow()
@@ -113,6 +116,10 @@ async def chat(request: BrokerChatRequest) -> BrokerChatResponse:
         )
         
         logger.info(f"Chat response generated successfully for broker {request.broker_id}")
+        
+        # Detailed Output Logging
+        logger.info(f"\n=== API ENDPOINT OUTPUT START ===\n{response.model_dump_json(indent=2)}\n=== API ENDPOINT OUTPUT END ===\n")
+        
         return response
         
     except Exception as e:
@@ -124,7 +131,7 @@ async def chat(request: BrokerChatRequest) -> BrokerChatResponse:
 
 
 @router.get("/requests/{request_id}/summary")
-async def get_request_summary(request_id: int, broker_id: int) -> BrokerChatResponse:
+async def get_request_summary(request_id: str, broker_id: str) -> BrokerChatResponse:
     """Get a quick summary of a request without asking a specific question.
     
     Args:

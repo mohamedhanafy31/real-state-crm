@@ -5,8 +5,8 @@ import { Request } from './request.entity';
 
 @Entity('brokers')
 export class Broker {
-    @PrimaryColumn({ name: 'broker_id' })
-    brokerId: number;
+    @PrimaryColumn({ name: 'broker_id', type: 'varchar', length: 21 })
+    brokerId: string;
 
     @Column({ type: 'float', default: 0, name: 'overall_rate' })
     overallRate: number;

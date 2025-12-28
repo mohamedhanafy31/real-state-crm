@@ -33,8 +33,8 @@ export interface RecentActivity {
     type: 'broker_created' | 'broker_status_changed' | 'request_reassigned' | 'request_created';
     description: string;
     timestamp: Date;
-    relatedUserId?: number;
-    relatedRequestId?: number;
+    relatedUserId?: string;
+    relatedRequestId?: string;
 }
 
 @Injectable()

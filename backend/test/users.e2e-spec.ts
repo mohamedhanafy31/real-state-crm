@@ -7,7 +7,7 @@ describe('Users & Brokers (e2e)', () => {
     let app: INestApplication;
     let supervisorToken: string;
     let brokerToken: string;
-    let createdBrokerId: number;
+    let createdBrokerId: string;
     const timestamp = Date.now();
 
     beforeAll(async () => {

@@ -47,7 +47,7 @@ export class ProjectsController {
     @ApiOperation({ summary: 'Get project by ID' })
     @ApiResponse({ status: 200, description: 'Project retrieved successfully' })
     @ApiResponse({ status: 404, description: 'Project not found' })
-    findProject(@Param('id', ParseIntPipe) id: number) {
+    findProject(@Param('id') id: string) {
         return this.projectsService.findProject(id);
     }
 
@@ -57,7 +57,7 @@ export class ProjectsController {
     @ApiResponse({ status: 200, description: 'Project updated successfully' })
     @ApiResponse({ status: 404, description: 'Project not found' })
     updateProject(
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id') id: string,
         @Body() updateProjectDto: UpdateProjectDto,
     ) {
         return this.projectsService.updateProject(id, updateProjectDto);
@@ -70,7 +70,7 @@ export class ProjectsController {
     @ApiResponse({ status: 201, description: 'Unit created successfully' })
     @ApiResponse({ status: 404, description: 'Project not found' })
     createUnit(
-        @Param('projectId', ParseIntPipe) projectId: number,
+        @Param('projectId') projectId: string,
         @Body() createUnitDto: CreateUnitDto,
     ) {
         return this.projectsService.createUnit(projectId, createUnitDto);
@@ -79,16 +79,16 @@ export class ProjectsController {
     @Get('units')
     @ApiOperation({ summary: 'Get all units with optional filters' })
     @ApiQuery({ name: 'status', required: false })
-    @ApiQuery({ name: 'projectId', required: false, type: Number })
-    @ApiQuery({ name: 'areaId', required: false, type: Number })
+    @ApiQuery({ name: 'projectId', required: false, type: String })
+    @ApiQuery({ name: 'areaId', required: false, type: String })
     @ApiQuery({ name: 'minPrice', required: false, type: Number })
     @ApiQuery({ name: 'maxPrice', required: false, type: Number })
     @ApiQuery({ name: 'unitType', required: false })
     @ApiResponse({ status: 200, description: 'Units retrieved successfully' })
     findAllUnits(
         @Query('status') status?: string,
-        @Query('projectId') projectId?: number,
-        @Query('areaId') areaId?: number,
+        @Query('projectId') projectId?: string,
+        @Query('areaId') areaId?: string,
         @Query('minPrice') minPrice?: number,
         @Query('maxPrice') maxPrice?: number,
         @Query('unitType') unitType?: string,
@@ -138,7 +138,7 @@ export class ProjectsController {
     @ApiOperation({ summary: 'Get unit by ID' })
     @ApiResponse({ status: 200, description: 'Unit retrieved successfully' })
     @ApiResponse({ status: 404, description: 'Unit not found' })
-    findUnit(@Param('id', ParseIntPipe) id: number) {
+    findUnit(@Param('id') id: string) {
         return this.projectsService.findUnit(id);
     }
 
@@ -147,7 +147,7 @@ export class ProjectsController {
     @ApiOperation({ summary: 'Update unit' })
     @ApiResponse({ status: 200, description: 'Unit updated successfully' })
     @ApiResponse({ status: 404, description: 'Unit not found' })
-    updateUnit(@Param('id', ParseIntPipe) id: number, @Body() updateUnitDto: UpdateUnitDto) {
+    updateUnit(@Param('id') id: string, @Body() updateUnitDto: UpdateUnitDto) {
         return this.projectsService.updateUnit(id, updateUnitDto);
     }
 
@@ -156,7 +156,7 @@ export class ProjectsController {
     @ApiOperation({ summary: 'Delete unit (supervisor only)' })
     @ApiResponse({ status: 200, description: 'Unit deleted successfully' })
     @ApiResponse({ status: 404, description: 'Unit not found or reserved' })
-    deleteUnit(@Param('id', ParseIntPipe) id: number) {
+    deleteUnit(@Param('id') id: string) {
         return this.projectsService.deleteUnit(id);
     }
 }

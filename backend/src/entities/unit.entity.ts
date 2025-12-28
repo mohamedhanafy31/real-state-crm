@@ -1,22 +1,31 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
+    PrimaryColumn,
     Column,
     CreateDateColumn,
     ManyToOne,
     JoinColumn,
     OneToMany,
+    BeforeInsert,
 } from 'typeorm';
 import { Project } from './project.entity';
 import { Reservation } from './reservation.entity';
+import { generateId } from '../utils/id-generator';
 
 @Entity('units')
 export class Unit {
-    @PrimaryGeneratedColumn({ name: 'unit_id' })
-    unitId: number;
+    @PrimaryColumn({ name: 'unit_id', type: 'varchar', length: 21 })
+    unitId: string;
 
-    @Column({ name: 'project_id' })
-    projectId: number;
+    @BeforeInsert()
+    generateId() {
+        if (!this.unitId) {
+            this.unitId = generateId();
+        }
+    }
+
+    @Column({ name: 'project_id', type: 'varchar', length: 21 })
+    projectId: string;
 
     @Column({ type: 'varchar', length: 50, name: 'unit_type' })
     unitType: string;

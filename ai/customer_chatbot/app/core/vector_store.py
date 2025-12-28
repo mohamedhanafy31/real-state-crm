@@ -232,23 +232,52 @@ class VectorStoreService:
         
         conn = self._get_connection()
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT extracted_requirements, last_intent, is_complete
-                FROM customer_sessions
-                WHERE phone_number = %s
-                """,
-                (phone_number,)
-            )
-            row = cur.fetchone()
-            
-            if row:
-                logger.info(f"Retrieved session for {phone_number}")
-                return {
-                    "extracted_requirements": row[0],
-                    "last_intent": row[1],
-                    "is_complete": row[2]
-                }
+            # Try to get extended fields first (new schema)
+            try:
+                cur.execute(
+                    """
+                    SELECT extracted_requirements, last_intent, is_complete,
+                           confirmed, awaiting_confirmation, confirmation_attempt
+                    FROM customer_sessions
+                    WHERE phone_number = %s
+                    """,
+                    (phone_number,)
+                )
+                row = cur.fetchone()
+                
+                if row:
+                    logger.info(f"Retrieved session for {phone_number} (extended schema)")
+                    return {
+                        "extracted_requirements": row[0],
+                        "last_intent": row[1],
+                        "is_complete": row[2],
+                        "confirmed": row[3] if row[3] is not None else False,
+                        "awaiting_confirmation": row[4] if row[4] is not None else False,
+                        "confirmation_attempt": row[5] if row[5] is not None else 0
+                    }
+            except Exception as e:
+                # Fallback to old schema if columns don't exist
+                logger.debug(f"Extended columns not found, using basic schema: {e}")
+                cur.execute(
+                    """
+                    SELECT extracted_requirements, last_intent, is_complete
+                    FROM customer_sessions
+                    WHERE phone_number = %s
+                    """,
+                    (phone_number,)
+                )
+                row = cur.fetchone()
+                
+                if row:
+                    logger.info(f"Retrieved session for {phone_number} (basic schema)")
+                    return {
+                        "extracted_requirements": row[0],
+                        "last_intent": row[1],
+                        "is_complete": row[2],
+                        "confirmed": False,
+                        "awaiting_confirmation": False,
+                        "confirmation_attempt": 0
+                    }
         
         logger.debug(f"No existing session found for {phone_number}")
         return None
@@ -258,7 +287,10 @@ class VectorStoreService:
         phone_number: str,
         extracted_requirements: dict,
         last_intent: str,
-        is_complete: bool
+        is_complete: bool,
+        confirmed: bool = False,
+        awaiting_confirmation: bool = False,
+        confirmation_attempt: int = 0
     ):
         """Save or update customer session.
         
@@ -267,28 +299,57 @@ class VectorStoreService:
             extracted_requirements: Dictionary of extracted customer requirements.
             last_intent: Last detected intent.
             is_complete: Whether requirements are complete.
+            confirmed: Whether user has confirmed requirements.
+            awaiting_confirmation: Whether bot is waiting for confirmation.
+            confirmation_attempt: Number of confirmation attempts.
         """
         self.initialize()
         
         conn = self._get_connection()
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO customer_sessions 
-                (phone_number, extracted_requirements, last_intent, is_complete, updated_at)
-                VALUES (%s, %s, %s, %s, NOW())
-                ON CONFLICT (phone_number) 
-                DO UPDATE SET 
-                    extracted_requirements = EXCLUDED.extracted_requirements,
-                    last_intent = EXCLUDED.last_intent,
-                    is_complete = EXCLUDED.is_complete,
-                    updated_at = NOW()
-                """,
-                (phone_number, json.dumps(extracted_requirements), last_intent, is_complete)
-            )
-            conn.commit()
-        
-        logger.info(f"Saved session for {phone_number} (complete: {is_complete})")
+            # Try extended schema first
+            try:
+                cur.execute(
+                    """
+                    INSERT INTO customer_sessions 
+                    (phone_number, extracted_requirements, last_intent, is_complete,
+                     confirmed, awaiting_confirmation, confirmation_attempt, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, NOW())
+                    ON CONFLICT (phone_number) 
+                    DO UPDATE SET 
+                        extracted_requirements = EXCLUDED.extracted_requirements,
+                        last_intent = EXCLUDED.last_intent,
+                        is_complete = EXCLUDED.is_complete,
+                        confirmed = EXCLUDED.confirmed,
+                        awaiting_confirmation = EXCLUDED.awaiting_confirmation,
+                        confirmation_attempt = EXCLUDED.confirmation_attempt,
+                        updated_at = NOW()
+                    """,
+                    (phone_number, json.dumps(extracted_requirements), last_intent, is_complete,
+                     confirmed, awaiting_confirmation, confirmation_attempt)
+                )
+                conn.commit()
+                logger.info(f"Saved session for {phone_number} (complete: {is_complete}, confirmed: {confirmed})")
+            except Exception as e:
+                # Fallback to basic schema
+                logger.warning(f"Extended schema save failed, using basic: {e}")
+                conn.rollback()
+                cur.execute(
+                    """
+                    INSERT INTO customer_sessions 
+                    (phone_number, extracted_requirements, last_intent, is_complete, updated_at)
+                    VALUES (%s, %s, %s, %s, NOW())
+                    ON CONFLICT (phone_number) 
+                    DO UPDATE SET 
+                        extracted_requirements = EXCLUDED.extracted_requirements,
+                        last_intent = EXCLUDED.last_intent,
+                        is_complete = EXCLUDED.is_complete,
+                        updated_at = NOW()
+                    """,
+                    (phone_number, json.dumps(extracted_requirements), last_intent, is_complete)
+                )
+                conn.commit()
+                logger.info(f"Saved session for {phone_number} (basic schema, complete: {is_complete})")
     
     def close(self):
         """Close the database connection."""

@@ -1,0 +1,40 @@
+{
+  "name": "quick_complete_flow",
+  "description": "User provides all info in one message",
+  "test_type": "happy_path",
+  "phone_number": "20100000003_2083",
+  "original_phone": "20100000003",
+  "passed": false,
+  "message_results": [
+    {
+      "message": "عايز شقة في العاصمة الادارية Green Heights 3 ميزانيتي 5 مليون",
+      "response": "عذراً، حدث خطأ في معالجة رسالتك. سيتواصل معك أحد موظفينا قريباً.",
+      "intent": null,
+      "is_complete": false,
+      "extracted_requirements": null,
+      "checks_passed": [
+        "❌ is_complete: expected True, got False",
+        "❌ has_area: expected True, got False",
+        "❌ has_project: expected True, got False",
+        "❌ has_unit_type: expected True, got False"
+      ]
+    }
+  ],
+  "raw_responses": [
+    {
+      "message_index": 0,
+      "user_message": "عايز شقة في العاصمة الادارية Green Heights 3 ميزانيتي 5 مليون",
+      "full_response": {
+        "phone_number": "20100000003_2083",
+        "response": "عذراً، حدث خطأ في معالجة رسالتك. سيتواصل معك أحد موظفينا قريباً.",
+        "intent": null,
+        "extracted_requirements": null,
+        "is_complete": false,
+        "confirmation_buttons": null,
+        "should_ask_clarification": null,
+        "timestamp": "2025-12-26T14:29:50.889886"
+      }
+    }
+  ],
+  "errors": []
+}

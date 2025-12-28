@@ -30,10 +30,10 @@ export class RegisterDto {
     @IsNotEmpty()
     role: string;
 
-    @ApiProperty({ example: [1, 2], description: 'Area IDs for broker registration', required: false })
+    @ApiProperty({ example: ['area_1', 'area_2'], description: 'Area IDs for broker registration', required: false, type: [String] })
     @IsArray()
-    @IsInt({ each: true })
+    @IsString({ each: true })
     @IsOptional()
-    areaIds?: number[];
+    areaIds?: string[];
 }
 

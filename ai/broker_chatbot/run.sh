@@ -33,7 +33,7 @@ echo "📦 Installing/Updating requirements..."
 
 echo "🏃 Running Broker Chatbot in environment: $ENV_NAME"
 echo "   Port: $PORT"
-echo "   Backend API: ${BACKEND_API_URL:-http://localhost:3000}"
+echo "   Backend API: ${BACKEND_API_URL:-http://localhost:3001}"
 echo "   Embedding Service: ${EMBEDDING_SERVICE_URL:-http://localhost:8001}"
 
 export CHATBOT_RUN_ID=$(date +"%Y%m%d_%H%M%S")

@@ -1,20 +1,29 @@
 import {
     Entity,
-    PrimaryGeneratedColumn,
+    PrimaryColumn,
     Column,
     CreateDateColumn,
     ManyToOne,
     JoinColumn,
+    BeforeInsert,
 } from 'typeorm';
 import { Request } from './request.entity';
+import { generateId } from '../utils/id-generator';
 
 @Entity('request_status_history')
 export class RequestStatusHistory {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryColumn({ type: 'varchar', length: 21 })
+    id: string;
 
-    @Column({ name: 'request_id' })
-    requestId: number;
+    @BeforeInsert()
+    generateId() {
+        if (!this.id) {
+            this.id = generateId();
+        }
+    }
+
+    @Column({ name: 'request_id', type: 'varchar', length: 21 })
+    requestId: string;
 
     @Column({ type: 'varchar', length: 50, name: 'old_status', nullable: true })
     oldStatus: string | null;
@@ -25,11 +34,11 @@ export class RequestStatusHistory {
     @Column({ type: 'varchar', length: 20, name: 'changed_by' })
     changedBy: string;
 
-    @Column({ type: 'int', name: 'from_broker_id', nullable: true })
-    fromBrokerId: number | null;
+    @Column({ type: 'varchar', length: 21, name: 'from_broker_id', nullable: true })
+    fromBrokerId: string | null;
 
-    @Column({ type: 'int', name: 'to_broker_id', nullable: true })
-    toBrokerId: number | null;
+    @Column({ type: 'varchar', length: 21, name: 'to_broker_id', nullable: true })
+    toBrokerId: string | null;
 
     @Column({ type: 'text', nullable: true })
     notes: string;

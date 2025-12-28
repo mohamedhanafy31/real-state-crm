@@ -34,12 +34,12 @@ export class UsersService {
         }
 
         // Hash password
-        const password_hash = await bcrypt.hash(password, 10);
+        const passwordHash = await bcrypt.hash(password, 10);
 
         // Create user
         const user = this.userRepository.create({
             phone,
-            password_hash,
+            passwordHash,
             name,
             email,
             role,
@@ -57,7 +57,7 @@ export class UsersService {
 
         // Remove password from response
         const userResponse: any = savedUser;
-        delete userResponse.password_hash;
+        delete userResponse.passwordHash;
         return userResponse;
     }
 
@@ -74,7 +74,7 @@ export class UsersService {
         });
     }
 
-    async findOne(userId: number): Promise<User> {
+    async findOne(userId: string): Promise<User> {
         const user = await this.userRepository.findOne({
             where: { userId },
             relations: ['broker'],
@@ -87,7 +87,7 @@ export class UsersService {
         return user;
     }
 
-    async updateUser(userId: number, updateUserDto: UpdateUserDto): Promise<User> {
+    async updateUser(userId: string, updateUserDto: UpdateUserDto): Promise<User> {
         const user = await this.findOne(userId);
 
         if (updateUserDto.phone && updateUserDto.phone !== user.phone) {
@@ -103,13 +103,13 @@ export class UsersService {
         return this.userRepository.save(user);
     }
 
-    async updateUserStatus(userId: number, isActive: boolean): Promise<User> {
+    async updateUserStatus(userId: string, isActive: boolean): Promise<User> {
         const user = await this.findOne(userId);
         user.isActive = isActive;
         return this.userRepository.save(user);
     }
 
-    async assignAreas(brokerId: number, assignAreasDto: AssignAreasDto): Promise<void> {
+    async assignAreas(brokerId: string, assignAreasDto: AssignAreasDto): Promise<void> {
         // Verify broker exists
         const broker = await this.brokerRepository.findOne({ where: { brokerId } });
         if (!broker) {
@@ -127,7 +127,7 @@ export class UsersService {
         await this.brokerAreaRepository.save(brokerAreas);
     }
 
-    async getBrokerPerformance(brokerId: number) {
+    async getBrokerPerformance(brokerId: string) {
         return this.cacheService.wrap(
             `broker:perf:${brokerId}`,
             async () => {
@@ -167,7 +167,7 @@ export class UsersService {
         );
     }
 
-    async deleteUser(userId: number): Promise<void> {
+    async deleteUser(userId: string): Promise<void> {
         const result = await this.userRepository.delete(userId);
         if (result.affected === 0) {
             throw new NotFoundException(`User with ID ${userId} not found`);

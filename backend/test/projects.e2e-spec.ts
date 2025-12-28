@@ -7,8 +7,8 @@ describe('Projects & Units (e2e)', () => {
     let app: INestApplication;
     let supervisorToken: string;
     let brokerToken: string;
-    let projectId: number;
-    let unitId: number;
+    let projectId: string;
+    let unitId: string;
     const timestamp = Date.now();
 
     beforeAll(async () => {

@@ -28,7 +28,7 @@ export class ProjectsService {
     // Project operations
     async createProject(createProjectDto: CreateProjectDto): Promise<Project> {
         const project = this.projectRepository.create(createProjectDto);
-        const saved = await this.projectRepository.save(project);
+        const saved = await this.projectRepository.save(project) as Project;
         
         // Sync embedding (parallel, fire-and-forget)
         this.embeddingService.syncProject(saved.projectId, saved.name, saved.nameAr, saved.areaId).catch(err => 
@@ -51,7 +51,7 @@ export class ProjectsService {
         );
     }
 
-    async findProject(projectId: number): Promise<Project> {
+    async findProject(projectId: string): Promise<Project> {
         const project = await this.projectRepository.findOne({
             where: { projectId },
             relations: ['area', 'units'],
@@ -64,7 +64,7 @@ export class ProjectsService {
         return project;
     }
 
-    async updateProject(projectId: number, updateProjectDto: UpdateProjectDto): Promise<Project> {
+    async updateProject(projectId: string, updateProjectDto: UpdateProjectDto): Promise<Project> {
         const project = await this.findProject(projectId);
         Object.assign(project, updateProjectDto);
         const updated = await this.projectRepository.save(project);
@@ -82,7 +82,7 @@ export class ProjectsService {
     }
 
     // Unit operations
-    async createUnit(projectId: number, createUnitDto: CreateUnitDto): Promise<Unit> {
+    async createUnit(projectId: string, createUnitDto: CreateUnitDto): Promise<Unit> {
         await this.findProject(projectId); // Verify project exists
 
         const unit = this.unitRepository.create({
@@ -129,7 +129,7 @@ export class ProjectsService {
         return query.getMany();
     }
 
-    async findUnit(unitId: number): Promise<Unit> {
+    async findUnit(unitId: string): Promise<Unit> {
         const unit = await this.unitRepository.findOne({
             where: { unitId },
             relations: ['project', 'project.area'],
@@ -142,7 +142,7 @@ export class ProjectsService {
         return unit;
     }
 
-    async updateUnit(unitId: number, updateUnitDto: UpdateUnitDto): Promise<Unit> {
+    async updateUnit(unitId: string, updateUnitDto: UpdateUnitDto): Promise<Unit> {
         const unit = await this.findUnit(unitId);
         Object.assign(unit, updateUnitDto);
         const updated = await this.unitRepository.save(unit);
@@ -154,7 +154,7 @@ export class ProjectsService {
         return updated;
     }
 
-    async deleteUnit(unitId: number): Promise<void> {
+    async deleteUnit(unitId: string): Promise<void> {
         const unit = await this.findUnit(unitId);
 
         if (unit.status === 'reserved') {
@@ -171,8 +171,8 @@ export class ProjectsService {
     async searchUnits(searchParams: {
         area?: string;
         project?: string;
-        areaId?: number;           // NEW: Accept area ID
-        projectId?: number;        // NEW: Accept project ID
+        areaId?: string;           // NEW: Accept area ID
+        projectId?: string;        // NEW: Accept project ID
         unitType?: string;
         budgetMax?: number;
         budgetMin?: number;        // NEW: Minimum budget
@@ -281,7 +281,7 @@ export class ProjectsService {
         );
     }
 
-    async searchProjects(areaName?: string, areaId?: number): Promise<Project[]> {
+    async searchProjects(areaName?: string, areaId?: string): Promise<Project[]> {
         const query = this.projectRepository
             .createQueryBuilder('project')
             .leftJoinAndSelect('project.area', 'area')
@@ -310,7 +310,7 @@ export class ProjectsService {
      */
     async fuzzySearchProjects(
         query: string,
-        areaId?: number,
+        areaId?: string,
         limit: number = 5
     ): Promise<Project[]> {
         const qb = this.projectRepository

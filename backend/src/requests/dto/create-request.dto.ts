@@ -2,20 +2,20 @@ import { IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateRequestDto {
-    @ApiProperty({ example: 1 })
-    @IsInt()
+    @ApiProperty({ example: 'customer-123' })
+    @IsString()
     @IsNotEmpty()
-    customerId: number;
+    customerId: string;
 
-    @ApiProperty({ example: 1 })
-    @IsInt()
+    @ApiProperty({ example: 'area-123' })
+    @IsString()
     @IsNotEmpty()
-    areaId: number;
+    areaId: string;
 
-    @ApiProperty({ example: 1, required: false })
-    @IsInt()
+    @ApiProperty({ example: 'broker-123', required: false })
+    @IsString()
     @IsOptional()
-    assignedBrokerId?: number;
+    assignedBrokerId?: string;
 
     @ApiProperty({ example: 'apartment', required: false })
     @IsString()

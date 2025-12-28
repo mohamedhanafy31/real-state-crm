@@ -28,8 +28,8 @@ class BrokerBackendAPIService:
     
     def get_request_with_conversations(
         self,
-        request_id: int,
-        broker_id: int
+        request_id: str,
+        broker_id: str
     ) -> Optional[Dict]:
         """Get request details with all conversations.
         
@@ -55,6 +55,10 @@ class BrokerBackendAPIService:
             
             response.raise_for_status()
             data = response.json()
+            
+            # Detailed Logging
+            logger.info(f"\n=== BACKEND REQUEST START ===\nGET {self.base_url}/chatbot/broker/requests/{request_id}?broker_id={broker_id}\nResponse: {data}\n=== BACKEND REQUEST END ===\n")
+            
             logger.info(f"Retrieved request {request_id} with {len(data.get('conversations', []))} conversations")
             return data
             
@@ -67,7 +71,7 @@ class BrokerBackendAPIService:
     
     def get_request_conversations(
         self,
-        request_id: int
+        request_id: str
     ) -> List[Dict]:
         """Get all conversations for a request.
         
@@ -92,8 +96,8 @@ class BrokerBackendAPIService:
     
     def verify_broker_access(
         self,
-        broker_id: int,
-        request_id: int
+        broker_id: str,
+        request_id: str
     ) -> bool:
         """Verify that broker has access to this request.
         
@@ -118,7 +122,7 @@ class BrokerBackendAPIService:
     
     def get_broker_assigned_requests(
         self,
-        broker_id: int
+        broker_id: str
     ) -> List[Dict]:
         """Get all requests assigned to a broker.
         
@@ -144,7 +148,7 @@ class BrokerBackendAPIService:
     
     def get_request_details(
         self,
-        request_id: int
+        request_id: str
     ) -> Optional[Dict]:
         """Get basic request details.
         
@@ -165,15 +169,15 @@ class BrokerBackendAPIService:
     
     def save_conversation(
         self,
-        request_id: int,
+        request_id: Optional[str],
         actor_type: str,
         message: str,
-        actor_id: Optional[int] = None
+        actor_id: Optional[str] = None
     ) -> bool:
         """Save a conversation message to the database.
         
         Args:
-            request_id: ID of the related request.
+            request_id: ID of the related request (Optional).
             actor_type: Type of actor ('broker' or 'ai').
             message: The message content.
             actor_id: ID of the actor (broker_id for broker messages).
@@ -185,25 +189,31 @@ class BrokerBackendAPIService:
             payload = {
                 "related_request_id": request_id,
                 "actor_type": actor_type,
-                "message": message
+                "message": message,
+                "context_type": "broker"  # All broker chatbot conversations are broker context
             }
             
             if actor_id:
                 payload["actor_id"] = actor_id
+            
+            logger.info(f"Saving {actor_type} message (broker context): {message[:50]}...")
             
             response = self.client.post(
                 f"{self.base_url}/chatbot/conversations",
                 json=payload
             )
             response.raise_for_status()
-            logger.info(f"Saved {actor_type} conversation for request {request_id}")
+            
+            # Detailed Logging
+            logger.info(f"\n=== BACKEND REQUEST START ===\nPOST {self.base_url}/chatbot/conversations\nPayload: {payload}\nResponse: {response.text}\n=== BACKEND REQUEST END ===\n")
+            
             return True
             
         except Exception as e:
             logger.error(f"Error saving conversation: {e}")
             return False
     
-    def get_all_requests(self, broker_id: Optional[int] = None) -> List[Dict]:
+    def get_all_requests(self, broker_id: Optional[str] = None) -> List[Dict]:
         """Get all requests, optionally filtered by broker.
         
         Args:

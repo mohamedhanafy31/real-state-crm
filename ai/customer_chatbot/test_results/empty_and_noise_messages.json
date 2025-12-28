@@ -1,0 +1,15 @@
+{
+  "name": "empty_and_noise_messages",
+  "description": "Handle empty and noise messages gracefully",
+  "test_type": "edge_case",
+  "phone_number": "20100000018_2204",
+  "original_phone": "20100000018",
+  "passed": false,
+  "message_results": [],
+  "raw_responses": [],
+  "errors": [
+    "Message 1: ConnectError: [Errno 111] Connection refused",
+    "Message 2: ConnectError: [Errno 111] Connection refused",
+    "Message 3: ConnectError: [Errno 111] Connection refused"
+  ]
+}

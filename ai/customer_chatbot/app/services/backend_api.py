@@ -33,7 +33,7 @@ class BackendAPIService:
             name: Customer name (optional).
             
         Returns:
-            Customer ID.
+            Customer ID (string).
         """
         try:
             # Use public chatbot endpoint
@@ -52,8 +52,8 @@ class BackendAPIService:
     
     def search_units(
         self,
-        area_id: int = None,  # NEW: Use ID instead of name
-        project_id: int = None,  # NEW: Use ID instead of name
+        area_id: str = None,  # NEW: Use ID instead of name
+        project_id: str = None,  # NEW: Use ID instead of name
         area_name: str = None,  # DEPRECATED: Keep for backwards compatibility
         project_name: str = None,  # DEPRECATED: Keep for backwards compatibility
         unit_type: str = None,
@@ -144,8 +144,8 @@ class BackendAPIService:
     
     def create_request(
         self,
-        customer_id: int,
-        area_id: int,
+        customer_id: str,
+        area_id: str,
         requirements: dict
     ) -> int:
         """Create a new customer request in the CRM.
@@ -207,7 +207,7 @@ class BackendAPIService:
             logger.error(f"Error fetching areas: {e}")
             return []
     
-    def get_area_id_by_name(self, area_name: str) -> Optional[int]:
+    def get_area_id_by_name(self, area_name: str) -> Optional[str]:
         """Get area ID by area name.
         
         Args:
@@ -281,7 +281,7 @@ class BackendAPIService:
             logger.error(f"Error fuzzy searching area: {e}")
             return {"area": None, "suggestions": []}
     
-    def fuzzy_search_project(self, query: str, area_id: int = None) -> List[Dict]:
+    def fuzzy_search_project(self, query: str, area_id: str = None) -> List[Dict]:
         """Fuzzy search for project by name.
         
         Args:
@@ -318,8 +318,8 @@ class BackendAPIService:
     
     def get_price_range(
         self,
-        area_id: int = None,  # Use ID instead of name
-        project_id: int = None,  # NEW: Support project filtering
+        area_id: str = None,  # Use ID instead of name
+        project_id: str = None,  # NEW: Support project filtering
         unit_type: str = None
     ) -> Dict:
         """Get price range for units matching filters.
@@ -368,6 +368,45 @@ class BackendAPIService:
             logger.error(f"Error comparing projects: {e}")
             return []
     
+    def save_conversation(
+        self,
+        request_id: Optional[str],
+        actor_type: str,
+        message: str,
+        actor_id: str = None
+    ) -> bool:
+        """Save conversation message to backend.
+        
+        Args:
+            request_id: Related request ID (Optional).
+            actor_type: 'customer', 'broker', or 'ai'.
+            message: Message content.
+            actor_id: ID of the actor (customer_id or broker_id).
+        
+        Returns:
+            True if successful, False otherwise.
+        """
+        try:
+            payload = {
+                "related_request_id": request_id,
+                "actor_type": actor_type,
+                "message": message,
+                "actor_id": actor_id,
+                "context_type": "customer"  # All customer chatbot conversations are customer context
+            }
+            
+            response = self.client.post(
+                f"{self.base_url}/chatbot/conversations",
+                json=payload
+            )
+            response.raise_for_status()
+            logger.info(f"Saved conversation message (customer context) for request {request_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Error saving conversation: {e}")
+            return False
+
     def close(self):
         """Close the HTTP client."""
         self.client.close()

@@ -47,7 +47,7 @@ export class RequestsController {
     @ApiOperation({ summary: 'Get customer by ID with all requests' })
     @ApiResponse({ status: 200, description: 'Customer retrieved successfully' })
     @ApiResponse({ status: 404, description: 'Customer not found' })
-    findCustomer(@Param('id', ParseIntPipe) id: number) {
+    findCustomer(@Param('id') id: string) {
         return this.requestsService.findCustomer(id);
     }
 
@@ -63,13 +63,13 @@ export class RequestsController {
     @Get('requests')
     @ApiOperation({ summary: 'Get all requests with optional filters' })
     @ApiQuery({ name: 'status', required: false })
-    @ApiQuery({ name: 'assignedBrokerId', required: false, type: Number })
-    @ApiQuery({ name: 'areaId', required: false, type: Number })
+    @ApiQuery({ name: 'assignedBrokerId', required: false, type: String })
+    @ApiQuery({ name: 'areaId', required: false, type: String })
     @ApiResponse({ status: 200, description: 'Requests retrieved successfully' })
     findAllRequests(
         @Query('status') status?: string,
-        @Query('assignedBrokerId') assignedBrokerId?: number,
-        @Query('areaId') areaId?: number,
+        @Query('assignedBrokerId') assignedBrokerId?: string,
+        @Query('areaId') areaId?: string,
     ) {
         return this.requestsService.findAllRequests({ status, assignedBrokerId, areaId });
     }
@@ -78,7 +78,7 @@ export class RequestsController {
     @ApiOperation({ summary: 'Get request by ID with full details' })
     @ApiResponse({ status: 200, description: 'Request retrieved successfully' })
     @ApiResponse({ status: 404, description: 'Request not found' })
-    findRequest(@Param('id', ParseIntPipe) id: number) {
+    findRequest(@Param('id') id: string) {
         return this.requestsService.findRequest(id);
     }
 
@@ -87,7 +87,7 @@ export class RequestsController {
     @ApiResponse({ status: 200, description: 'Request updated successfully' })
     @ApiResponse({ status: 404, description: 'Request not found' })
     updateRequest(
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id') id: string,
         @Body() updateRequestDto: UpdateRequestDto,
     ) {
         return this.requestsService.updateRequest(id, updateRequestDto);
@@ -101,7 +101,7 @@ export class RequestsController {
     @ApiResponse({ status: 404, description: 'Request not found' })
     @ApiResponse({ status: 403, description: 'Forbidden - supervisor role required' })
     reassignRequest(
-        @Param('id', ParseIntPipe) id: number,
+        @Param('id') id: string,
         @Body() reassignDto: ReassignRequestDto,
     ) {
         return this.requestsService.reassignRequest(id, reassignDto);
@@ -110,7 +110,7 @@ export class RequestsController {
     @Get('requests/:id/history')
     @ApiOperation({ summary: 'Get request status history' })
     @ApiResponse({ status: 200, description: 'History retrieved successfully' })
-    getRequestHistory(@Param('id', ParseIntPipe) id: number) {
+    getRequestHistory(@Param('id') id: string) {
         return this.requestsService.getRequestHistory(id);
     }
 }

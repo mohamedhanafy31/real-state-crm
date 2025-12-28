@@ -9,8 +9,8 @@ describe('Security & Authorization (e2e)', () => {
     let supervisor2Token: string;
     let broker1Token: string;
     let broker2Token: string;
-    let broker1Id: number;
-    let broker2Id: number;
+    let broker1Id: string;
+    let broker2Id: string;
     let timestamp: number;
 
     beforeAll(async () => {

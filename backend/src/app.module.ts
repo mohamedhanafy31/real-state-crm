@@ -16,6 +16,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
 import { LoggerModule } from './logger/logger.module';
 import { CacheModule } from './cache/cache.module';
 import { EmbeddingModule } from './embedding/embedding.module';
+import { ApplicationsModule } from './applications/applications.module';
 
 @Module({
     imports: [
@@ -55,6 +56,7 @@ import { EmbeddingModule } from './embedding/embedding.module';
         UploadModule,
         ChatbotModule,
         EmbeddingModule,
+        ApplicationsModule,
     ],
     controllers: [],
     providers: [],

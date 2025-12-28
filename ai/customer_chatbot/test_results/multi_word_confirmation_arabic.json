@@ -1,0 +1,14 @@
+{
+  "name": "multi_word_confirmation_arabic",
+  "description": "Multi-word Arabic confirmation should NOT trigger update_requirements",
+  "test_type": "confirmation_flow",
+  "phone_number": "20100000006_5927",
+  "original_phone": "20100000006",
+  "passed": false,
+  "message_results": [],
+  "raw_responses": [],
+  "errors": [
+    "Message 1: ConnectError: [Errno 111] Connection refused",
+    "Message 2: ConnectError: [Errno 111] Connection refused"
+  ]
+}

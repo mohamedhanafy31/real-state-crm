@@ -44,6 +44,7 @@
         "cache-manager-redis-yet": "^5.1.5",
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.0",
+        "nanoid": "^5.1.6",
         "nest-winston": "^1.10.2",
         "passport": "^0.7.0",
         "passport-jwt": "^4.0.1",

@@ -38,7 +38,7 @@ export class AreasService {
         );
     }
 
-    async findOne(id: number): Promise<Area> {
+    async findOne(id: string): Promise<Area> {
         return this.cacheService.wrap(
             `${this.CACHE_KEY_PREFIX}${id}`,
             async () => {
@@ -74,7 +74,7 @@ export class AreasService {
         return saved;
     }
 
-    async update(id: number, updateAreaDto: UpdateAreaDto): Promise<Area> {
+    async update(id: string, updateAreaDto: UpdateAreaDto): Promise<Area> {
         const area = await this.findOne(id);
 
         if (updateAreaDto.name && updateAreaDto.name !== area.name) {
@@ -101,7 +101,7 @@ export class AreasService {
         return updated;
     }
 
-    async delete(id: number): Promise<void> {
+    async delete(id: string): Promise<void> {
         const area = await this.findOne(id);
         await this.areaRepository.remove(area);
         

@@ -44,10 +44,14 @@ def load_session_state(state: ConversationState) -> ConversationState:
     session_data = vector_store.get_customer_session(state["phone_number"])
     
     if session_data:
-        # Merge existing session state
+        # Merge existing session state - core fields
         state["extracted_requirements"] = session_data["extracted_requirements"]
         state["is_complete"] = session_data["is_complete"]
-        logger.info(f"Node [load_session_state]: Loaded existing session for {state['phone_number']}")
+        # Workflow state fields (confirmation flow)
+        state["confirmed"] = session_data.get("confirmed", False)
+        state["awaiting_confirmation"] = session_data.get("awaiting_confirmation", False)
+        state["confirmation_attempt"] = session_data.get("confirmation_attempt", 0)
+        logger.info(f"Node [load_session_state]: Loaded existing session for {state['phone_number']} (confirmed: {state['confirmed']})")
     else:
         logger.debug(f"Node [load_session_state]: No existing session for {state['phone_number']}")
     
@@ -158,31 +162,49 @@ def refine_intent(raw_intent: str, state: ConversationState) -> str:
     """
     msg = state["user_message"].lower()
     
-    # Confirmation phase rules
-    if state.get("awaiting_confirmation"):
-        confirm_words = ["تمام", "ok", "اه", "نعم", "صح", "ماشي", "اكيد", "موافق", "تأكيد", "اوك", "tmam", "aywa", "👍"]
+    # Confirmation phase rules (including closing phase)
+    # We check if awaiting_confirmation OR (is_complete and not confirmed)
+    in_confirmation_phase = state.get("awaiting_confirmation") or (state.get("is_complete") and not state.get("confirmed"))
+
+    if in_confirmation_phase:
+        confirm_words = ["تمام", "ok", "اه", "نعم", "صح", "ماشي", "اكيد", "موافق", "تأكيد", "اوك", "tmam", "aywa", "👍", "مظبوط", "كدة", "كده", "اوكي", "حاضر"]
         # Cancel MUST be checked BEFORE reject (since "مش عايز" contains "مش")
         cancel_words = ["خلاص", "مش عايز", "الغي", "إلغاء", "ابدأ من جديد", "cancel"]
         reject_words = ["غلط", "عدل", "غير", "لأ", "لأه", "no"]  # Removed "مش" and "لا" to avoid false positives
+        
         
         # Priority 1: Check cancel first (most specific)
         if any(w in msg for w in cancel_words):
             logger.debug(f"[refine_intent] Override: {raw_intent} -> cancel (matched cancel word)")
             return "cancel"
+
+        # Check if message is DATA (name/phone) vs pure confirmation
+        is_reject = any(w in msg for w in reject_words)
+        if not is_reject:
+            msg_words = state["user_message"].split()
+            # Check if ANY word is a confirm word
+            has_confirm_word = any(w.lower() in confirm_words for w in msg_words)
+            
+            # FIXED LOGIC: If message has confirm word AND is short (<=5 words), it's likely pure confirmation
+            # Examples: "اه تمام كدة مظبوط" (4 words), "تمام" (1 word), "ok yes" (2 words)
+            if has_confirm_word and len(msg_words) <= 5:
+                # Even if LLM said something else, this is confirmation
+                if raw_intent not in ["inquiry", "new_search"]:
+                    logger.debug(f"[refine_intent] Override: {raw_intent} -> confirm (short msg with confirm word)")
+                    return "confirm"
+            
+            # If message is long (>5 words) AND has substantial non-confirm content, might be data
+            elif len(msg_words) > 5:
+                non_confirm_words = [w for w in msg_words if w.lower() not in confirm_words]
+                if len(non_confirm_words) >= 3:  # Increased threshold to avoid false positives
+                    logger.debug(f"[refine_intent] Override: {raw_intent} -> update_requirements (long msg with data)")
+                    return "update_requirements"
         
         if raw_intent in ["follow_up", "unknown", "greeting"]:
             # Priority 2: Confirmation
             if any(w in msg for w in confirm_words):
                 logger.debug(f"[refine_intent] Override: {raw_intent} -> confirm (matched confirmation word)")
                 return "confirm"
-            # Priority 3: Edit/reject
-            if any(w in msg for w in reject_words):
-                logger.debug(f"[refine_intent] Override: {raw_intent} -> edit (matched rejection word)")
-                return "edit"
-            # Check for standalone "لا" or "مش" only when not part of cancel phrase
-            if msg.strip() in ["لا", "مش", "لأ"]:
-                logger.debug(f"[refine_intent] Override: {raw_intent} -> edit (standalone rejection)")
-                return "edit"
     
     # Name correction phase rules
     if state.get("awaiting_name_correction"):
@@ -329,6 +351,9 @@ def extract_requirements(state: ConversationState) -> ConversationState:
 
 أرجع JSON بالحقول التالية (ضع null للقيم غير الموجودة):
 {{
+    "customer_name": "اسم العميل المستخرج من الرسالة (مثل 'محمد احمد'). null إذا لم يذكر.",
+    "customer_phone": "رقم الهاتف المستخرج (مثل '010xxxx'). null إذا لم يذكر.",
+    "customer_email": "البريد الإلكتروني (مثل 'example@mail.com'). null إذا لم يذكر.",
     "area": "اسم المنطقة بالإنجليزية (استخدم قاعدة البيانات أعلاه للترجمة)",
     "area_id": رقم معرف المنطقة من قاعدة البيانات,
     "project": "اسم المشروع بالإنجليزية",
@@ -440,6 +465,26 @@ def extract_requirements(state: ConversationState) -> ConversationState:
             state["awaiting_name_confirmation"] = True
             state["clarification_question"] = f"""فهمت منك:\n{confirmation_text}\n\n**انت قصدك كده صح؟** اكتب 'نعم' للتأكيد أو صحح المعلومة."""
         
+        
+        # FIX: Infinite Loop Break - Auto-confirm if contact info provided during confirmation OR closing phase
+        # We check if awaiting_confirmation OR (is_complete and not confirmed) - meaning we are in "booking" phase
+        in_confirmation_phase = state.get("awaiting_confirmation") or (state.get("is_complete") and not state.get("confirmed"))
+        
+        if in_confirmation_phase:
+            # Check if name or phone was JUST extracted
+            new_name = new_requirements.get("customer_name")
+            new_phone = new_requirements.get("customer_phone")
+            
+            # If we were missing them, and now we have them -> Auto Confirm
+            missing_before = state.get("missing_fields", [])
+            has_new_contact = (new_name and "customer_name" in missing_before) or \
+                              (new_phone and "customer_phone" in missing_before) or \
+                              (new_name and new_phone)
+                              
+            if has_new_contact:
+                state["confirmed"] = True
+                logger.info(f"Node [extract_requirements]: Auto-confirming request - User provided contact info: {new_name}, {new_phone}")
+
         logger.info(f"Node [extract_requirements]: Merged requirements - {len(merged)} fields, Confirmation needed: {pending_confirmation_needed}")
     except json.JSONDecodeError:
         logger.error("Node [extract_requirements]: Failed to parse LLM response as JSON")
@@ -790,30 +835,44 @@ def generate_response(state: ConversationState) -> ConversationState:
             # Price range is already small
             limited_results["data"] = inquiry_results.get("data", {})
         elif inquiry_type == "ambiguous_entity":
-            # Keep alternatives for clarification
             limited_results["entity_type"] = inquiry_results.get("entity_type")
             limited_results["original"] = inquiry_results.get("original")
             limited_results["alternatives"] = inquiry_results.get("alternatives", [])[:5]  # Max 5
         
+        elif inquiry_type == "general_qa":
+            # Allow general Q&A using RAG context
+            limited_results["note"] = "General inquiry - use constraints from context"
+
         # CRITICAL FIX: Strict anti-hallucination prompt with LIMITED data
-        system_prompt = f"""أنت مساعد عقارات ذكي. العميل سأل سؤال استعلامي.
-
-**قواعد صارمة - يحظر تماماً مخالفتها:**
-1. **استخدم البيانات الحقيقية فقط** من نتائج البحث أدناه
-2. **ممنوع منعاً باتاً** اختراع أسماء مشاريع أو أسعار أو معلومات
-3. إذا كانت النتائج فارغة أو null، قل "لا توجد معلومات متاحة حالياً"
-4. **لا تذكر أي اسم مشروع أو سعر ليس موجود في البيانات أدناه**
-
-نتائج البحث (محدودة): {json.dumps(limited_results, ensure_ascii=False)}
-
-**المطلوب:**
-- إذا كانت النتيجة "ambiguous_entity": أخبر العميل أنك لم تجد الاسم بالضبط واعرض الخيارات من "alternatives"
-- إذا كانت النتيجة "projects": اذكر أسماء المشاريع من "names" فقط وعددها من "count"
-- إذا كانت "data" فارغة أو null: قل "لا توجد مشاريع متاحة في هذه المنطقة في قاعدة البيانات"
-- إذا كانت "units_search": اعرض عدد الوحدات وعينة من "sample" مع أسعارها الحقيقية فقط
-- إذا كانت "price_range": اعرض min/max/count من "data"
-
-**تحذير أخير**: أي معلومة غير موجودة في نتائج البحث أعلاه هي اختراع محظور."""
+        if inquiry_type == "general_qa":
+             # Relaxed prompt for general questions
+             system_prompt = f"""أنت مساعد عقارات ذكي. العميل يسأل سؤال عام.
+             
+             القواعد:
+             1. أجب بناءً على المعلومات المتاحة في السياق (Context) فقط.
+             2. إذا كانت المعلومة غير موجودة، قل "لا توجد لدي معلومة مؤكدة حالياً".
+             3. كن ودوداً ومساعداً.
+             """
+        else:
+             # Strict data-driven prompt for specific search results
+             system_prompt = f"""أنت مساعد عقارات ذكي. العميل سأل سؤال استعلامي.
+    
+             **قواعد صارمة - يحظر تماماً مخالفتها:**
+             1. **استخدم البيانات الحقيقية فقط** من نتائج البحث أدناه
+             2. **ممنوع منعاً باتاً** اختراع أسماء مشاريع أو أسعار أو معلومات
+             3. إذا كانت النتائج فارغة أو null، قل "لا توجد معلومات متاحة حالياً"
+             4. **لا تذكر أي اسم مشروع أو سعر ليس موجود في البيانات أدناه**
+             
+             نتائج البحث (محدودة): {json.dumps(limited_results, ensure_ascii=False)}
+             
+             **المطلوب:**
+             - إذا كانت النتيجة "ambiguous_entity": أخبر العميل أنك لم تجد الاسم بالضبط واعرض الخيارات من "alternatives"
+             - إذا كانت النتيجة "projects": اذكر أسماء المشاريع من "names" فقط وعددها من "count"
+             - إذا كانت "data" فارغة أو null: قل "لا توجد مشاريع متاحة في هذه المنطقة في قاعدة البيانات"
+             - إذا كانت "units_search": اعرض عدد الوحدات وعينة من "sample" مع أسعارها الحقيقية فقط
+             - إذا كانت "price_range": اعرض min/max/count من "data"
+             
+             **تحذير أخير**: أي معلومة غير موجودة في نتائج البحث أعلاه هي اختراع محظور."""
         
         logger.info(f"Node [generate_response]: Source -> Inquiry Results (Anti-Hallucination Mode, Limited Data)")
         response = llm_service.generate_response(
@@ -1044,9 +1103,12 @@ def save_session_state(state: ConversationState) -> ConversationState:
         phone_number=state["phone_number"],
         extracted_requirements=state.get("extracted_requirements", {}),
         last_intent=state.get("intent", "unknown"),
-        is_complete=state.get("is_complete", False)
+        is_complete=state.get("is_complete", False),
+        confirmed=state.get("confirmed", False),
+        awaiting_confirmation=state.get("awaiting_confirmation", False),
+        confirmation_attempt=state.get("confirmation_attempt", 0)
     )
-    logger.debug(f"Node [save_session_state]: Session saved for {state['phone_number']}")
+    logger.debug(f"Node [save_session_state]: Session saved for {state['phone_number']} (confirmed: {state.get('confirmed')})")
     return state
 
 
@@ -1134,6 +1196,38 @@ def create_customer_request(state: ConversationState) -> ConversationState:
                 state["customer_id"] = customer_id
                 state["confirmed"] = False  # Reset for future requests if needed
                 logger.info(f"Node [create_request]: Created request {request_id} for customer {customer_id}")
+                
+                # Sync conversation history to persistent SQL storage
+                try:
+                    vector_store = get_vector_store()
+                    # Fetch recent history (last 20 messages)
+                    history = vector_store.get_conversation_history(state["phone_number"], limit=20)
+                    
+                    synced_count = 0
+                    for msg in history:
+                        # Map role to actor_type
+                        # 'user' -> 'customer', 'assistant' -> 'ai'
+                        if msg['role'] == 'user':
+                            actor_type = 'customer'
+                            actor_id_val = customer_id
+                        else:
+                            actor_type = 'ai'
+                            actor_id_val = None
+                            
+                        success = backend_api.save_conversation(
+                            request_id=request_id,
+                            actor_type=actor_type,
+                            message=msg['content'],
+                            actor_id=actor_id_val
+                        )
+                        if success:
+                            synced_count += 1
+                            
+                    logger.info(f"Node [create_request]: Synced {synced_count} messages to conversations table")
+                    
+                except Exception as e:
+                    logger.error(f"Node [create_request]: Error syncing history - {e}")
+
             else:
                 # Area not found - fetch all available areas to suggest
                 logger.warning(f"Node [create_request]: Area '{area_name}' not found - fetching alternatives")
@@ -1151,199 +1245,173 @@ def create_customer_request(state: ConversationState) -> ConversationState:
     return state
 
 
-def handle_inquiry(state: ConversationState) -> ConversationState:
-    """Handle general inquiry requests (projects, areas, prices, comparisons).
+def classify_inquiry_logic(user_message: str, context_str: str = "") -> dict:
+    """Classify user inquiry using a lightweight LLM router.
     
-    Enhanced to support:
-    - Available areas listing
-    - Projects in a specific area
-    - Price ranges by project/unit type
-    - Multiple project comparisons
+    Uses Cohere command-r7b-12-2024 for speed.
+    """
+    llm_service = get_llm_service()
     
-    Args:
-        state: Current conversation state.
+    router_prompt = f"""You are a smart router for a Real Estate Chatbot. 
+    Analyze the user's question and classify it into ONE of these categories:
+    
+    1. price_check: Question about price, cost, down payment, installments.
+    2. availability_check: Question about what units are available, types (apartments/villas), or specific availability.
+    3. project_comparison: Asking to compare 2+ projects or areas.
+    4. location_info: Asking about a specific area, location, or where something is.
+    5. general_qa: General questions about the company, real estate market, or generic "how are you".
+    
+    User Message: "{user_message}"
+    Context: {context_str}
+    
+    Return JSON ONLY:
+    {{
+        "type": "category_name",
+        "entities": {{
+            "project": "extracted_project_name_or_null",
+            "area": "extracted_area_name_or_null",
+            "unit_type": "extracted_unit_type_or_null"
+        }}
+    }}
+    """
+    
+    try:
+        response = llm_service.generate_response(
+            user_message=router_prompt,
+            system_prompt="You are a JSON-only classification router. Output valid JSON."
+        )
         
-    Returns:
-        Updated state with inquiry results.
+        # Parse JSON
+        import re
+        json_match = re.search(r"\{.*\}", response, re.DOTALL)
+        if json_match:
+            return json.loads(json_match.group(0))
+        return {"type": "general_qa", "entities": {}}
+        
+    except Exception as e:
+        logger.error(f"Router failed: {e}")
+        return {"type": "general_qa", "entities": {}}
+
+
+def handle_inquiry(state: ConversationState) -> ConversationState:
+    """Handle general inquiry requests using Smart LLM Routing.
+    
+    Replaces keyword matching with semantic classification.
     """
     backend_api = get_backend_api_service()
     from app.services.name_matcher import get_name_matcher_service
     matcher = get_name_matcher_service()
     
-    message = state["user_message"].lower()
+    message = state["user_message"]
     reqs = state.get("extracted_requirements", {})
+    
+    # Context for extraction (e.g. if we know they are looking in New Capital)
+    context_str = f"Current Focus: Area={reqs.get('area')}, Project={reqs.get('project')}"
+    
+    # 1. CLASSIFY
+    classification = classify_inquiry_logic(message, context_str)
+    inquiry_type = classification.get("type", "general_qa")
+    entities = classification.get("entities", {})
+    
+    logger.info(f"Node [handle_inquiry]: Smart Router Classification -> {inquiry_type} | Entities: {entities}")
+    state["inquiry_classification"] = classification
     
     results = {}
     
     try:
-        # Check for price inquiry
-        if any(w in message for w in ["سعر", "اسعار", "أسعار", "price", "prices", "range", "رينج"]):
-            logger.info("Node [handle_inquiry]: Detected PRICE inquiry keywords")
-            project_name = reqs.get("project")
-            area_name = reqs.get("area")
-            unit_type = reqs.get("unit_type")
-            
+        # Merge extracted entities with state requirements if trusted
+        target_project_name = entities.get("project") or reqs.get("project")
+        target_area_name = entities.get("area") or reqs.get("area")
+        target_unit = entities.get("unit_type") or reqs.get("unit_type") # This might need mapping too
+
+        # Resolve IDs
+        target_project_id = reqs.get("project_id")
+        target_area_id = reqs.get("area_id")
+
+        if target_project_name and not target_project_id:
+             p_match = matcher.match_project(target_project_name)
+             if p_match.matched:
+                 target_project_id = p_match.id
+                 target_project_name = p_match.value # Canonical name
+        
+        if target_area_name and not target_area_id:
+             a_match = matcher.match_area(target_area_name)
+             if a_match.matched:
+                 target_area_id = a_match.id
+                 target_area_name = a_match.value
+
+        # Map Unit Type (Arabic -> English)
+        if target_unit:
+             # simple quick mapping or use the one from extract_requirements logic if reusable
+             # For now, let's reuse the mapping logic if possible or duplicate simple version
+             type_map = {
+                'شقة': 'Apartment', 'شقق': 'Apartment',
+                'فيلا': 'Villa', 'فلل': 'Villa',
+                'تاون': 'Town House', 'توين': 'Twin House',
+                'شاليه': 'Chalet', 'ستوديو': 'Studio'
+             }
+             for k, v in type_map.items():
+                 if k in target_unit:
+                     target_unit = v
+                     break
+
+        # --- ROUTING LOGIC ---
+        
+        if inquiry_type == "price_check":
             price_data = backend_api.get_price_range(
-                project_name=project_name,
-                area_name=area_name,
-                unit_type=unit_type
+                project_id=target_project_id,
+                area_id=target_area_id,
+                unit_type=target_unit
             )
             results["type"] = "price_range"
             results["data"] = price_data
-            results["filters"] = {"project": project_name, "area": area_name, "unit_type": unit_type}
-            logger.info(f"Node [handle_inquiry]: Price range - {price_data}")
+            results["filters"] = {"project": target_project_name, "area": target_area_name, "unit_type": target_unit}
             
-        # Check for comparison inquiry
-        elif any(w in message for w in ["قارن", "مقارنة", "compare", "الفرق", "فرق بين"]):
-            logger.info("Node [handle_inquiry]: Detected COMPARISON inquiry keywords")
-            project_names = []
-            if reqs.get("project"):
-                project_names.append(reqs["project"])
-            
-            if project_names:
-                comparison = backend_api.compare_projects(project_names)
-                results["type"] = "comparison"
-                results["data"] = comparison
-                logger.info(f"Node [handle_inquiry]: Compared {len(project_names)} projects")
-            else:
-                results["type"] = "comparison_needed"
-                results["message"] = "Please specify which projects to compare"
+        elif inquiry_type == "project_comparison":
+             results["type"] = "comparison_needed"
+             results["message"] = "Specify projects to compare"
+             
+        elif inquiry_type == "availability_check":
+             if target_project_id or target_area_id:
+                 if target_project_id:
+                     # Check specific project units
+                     units = backend_api.search_units(
+                         project_id=target_project_id, 
+                         unit_type=target_unit,
+                         limit=5
+                     )
+                     results["type"] = "units_search"
+                     results["data"] = units
+                 else:
+                     # List projects in area (using ID)
+                     # Note: get_projects currently takes area_name, let's see if we can use ID or name
+                     # backend_api.get_projects takes area_name string.
+                     projects = backend_api.get_projects(target_area_name) 
+                     results["type"] = "projects"
+                     results["data"] = projects[:10]
+                     results["area_filter"] = target_area_name
+             else:
+                 results["type"] = "general_qa"
+                 results["message"] = "General availability"
 
+        elif inquiry_type == "location_info":
+             if target_area_name:
+                  results["type"] = "general_qa" 
+                  results["context_note"] = f"User asking about location of {target_area_name}"
+             else:
+                 areas = backend_api.get_all_areas()
+                 results["type"] = "areas"
+                 results["data"] = areas
 
-        # Check for Cheapest/Unit Feature Inquiry
-        elif any(w in message for w in ["ar5as", "cheapest", "aqal", "garden", "view", "roof", "finishing", "pool", "shqa", "shalah", "villa", "شقة", "فيلا", "تشطيب", "بحر", "حديقة", "اقل", "أقل", "ارخص", "أرخص"]):
-            logger.info("Node [handle_inquiry]: Detected UNIT/FEATURE inquiry keywords")
-            
-            # CRITICAL FIX: Use area_id and project_id instead of names
-            area_id = reqs.get("area_id")
-            project_id = reqs.get("project_id")
-            
-            # CRITICAL FIX: Map Arabic unit type to English for backend
-            unit_type_ar = reqs.get("unit_type")
-            unit_type_en = None
-            if unit_type_ar:
-                type_map = {
-                    'شقة': 'Apartment',
-                    'شقق': 'Apartment',
-                    'فيلا': 'Villa',
-                    'فلل': 'Villa',
-                    'دوبلكس': 'Duplex',
-                    'استوديو': 'Studio',
-                    'شاليه': 'Chalet',
-                    'تاون هاوس': 'Townhouse',
-                    'بنتهاوس': 'Penthouse'
-                }
-                unit_type_en = type_map.get(unit_type_ar, unit_type_ar)
-                logger.info(f"Node [handle_inquiry]: Mapped unit type '{unit_type_ar}' → '{unit_type_en}'")
-            
-            # Extract description features (bilingual)
-            feature_keywords = ["garden", "view", "roof", "pool", "sea", "finishing", "lake", "corner", "حديقة", "رووف", "بحر", "تشطيب", "فيو", "جاردن", "بحيرة"]
-            features = [w for w in feature_keywords if w in message]
-            description_query = " ".join(features) if features else None
-            
-            # NEW: Detect sorting intent from message  
-            sort_order = 'ASC'  # Default: cheapest first
-            if any(w in message for w in ['ارخص', 'أرخص', 'cheapest', 'ar5as', 'aqal', 'اقل', 'أقل']):
-                sort_order = 'ASC'
-                logger.info("Node [handle_inquiry]: Detected 'cheapest' sort order")
-            elif any(w in message for w in ['اغلى', 'أغلى', 'most expensive', 'a3la', 'اعلى', 'أعلى']):
-                sort_order = 'DESC'
-                logger.info("Node [handle_inquiry]: Detected 'most expensive' sort order")
-            
-            # NEW: Extract limit from message (e.g., "3 شقق" → limit=3)
-            import re
-            limit_match = re.search(r'(\d+)', message)
-            limit = int(limit_match.group(1)) if limit_match else 10
-            logger.info(f"Node [handle_inquiry]: Search limit set to {limit}")
-            
-            # CRITICAL FIX: Use ID-based search with new parameters
-            units = backend_api.search_units(
-                area_id=area_id,  # Use ID instead of name
-                project_id=project_id,  # Use ID instead of name
-                unit_type=unit_type_en,  # Use English unit type
-                description=description_query,
-                sort_by='price',  # Always sort by price for cheapest queries
-                sort_order=sort_order,  # ASC or DESC based on intent
-                limit=limit  # Limit results
-            )
-            
-            results["type"] = "units_search"
-            results["data"] = units # Return all matched units (already limited)
-            results["filters"] = {"area_id": area_id, "project_id": project_id, "unit_type": unit_type_en, "description": description_query}
-            logger.info(f"Node [handle_inquiry]: Found {len(units)} units (sorted {sort_order}, limit {limit})")
+        else: # general_qa
+            results["type"] = "general_qa"
+            results["message"] = "General inquiry"
 
-        # Check for Project Inquiry
-        elif any(w in message for w in ["project", "projects", "compound", "مشاريع", "مشروع", "كمبوند"]):
-            logger.info("Node [handle_inquiry]: Detected PROJECT inquiry keywords")
-            
-            # CRITICAL FIX: Extract area from message if missing
-            area_id = reqs.get("area_id")
-            
-            if not area_id:
-                import re
-                patterns = [r'في\s+(?:منطقة\s+)?([^\s؟?،,]+(?:\s+[^\s؟?،,]+)?)', r'in\s+([a-z\s]+?)(?:\s*[؟?]|$)']
-                for pattern in patterns:
-                    m = re.search(pattern, message, re.IGNORECASE)
-                    if m:
-                        area_text = m.group(1).strip()
-                        area_match = matcher.match_area(area_text)
-                        if area_match.matched:
-                            area_id = area_match.id
-                            reqs["area_id"] = area_id
-                            reqs["area"] = area_match.value
-                            logger.info(f"EXTRACTED area: '{area_text}' → {area_match.value} (ID={area_id})")
-                            break
-            
-            # Only validate area if we don't have area_id yet
-            area_name = reqs.get("area")  # Define area_name here
-            if area_name and not area_id:
-                area_match = matcher.match_area(area_name)
-                if area_match.matched:
-                    area_name = area_match.value
-                    area_id = area_match.id
-                    reqs["area_id"] = area_id  # Save for future use
-                    logger.info(f"Node [handle_inquiry]: Corrected area '{reqs['area']}' → '{area_name}' (ID: {area_id})")
-                elif area_match.alternatives:
-                    # Ambiguous Area - Stop and ask user
-                    results["type"] = "ambiguous_entity"
-                    results["entity_type"] = "area"
-                    results["original"] = area_name
-                    results["alternatives"] = area_match.alternatives
-                    logger.warning(f"Node [handle_inquiry]: Ambiguous area '{area_name}', options: {area_match.alternatives}")
-                    state["inquiry_results"] = results
-                    return state
-            else:
-                logger.info(f"Node [handle_inquiry]: Using existing area_id={area_id}, skipping re-validation")
-
-            # Fetch projects for the area
-            projects = backend_api.get_projects(area_name)
-            
-            results["type"] = "projects"
-            results["data"] = projects[:10]
-            results["area_filter"] = area_name
-            results["area_id"] = area_id
-            logger.info(f"Node [handle_inquiry]: Fetched {len(projects)} projects (Area: {area_name}, ID: {area_id})")
-            
-        # Check for Area Inquiry
-        elif any(w in message for w in ["area", "location", "منطقة", "مناطق", "احياء", "أحياء"]):
-            logger.info("Node [handle_inquiry]: Detected AREA inquiry keywords")
-            areas = backend_api.get_all_areas()
-            results["type"] = "areas"
-            results["data"] = areas
-            logger.info(f"Node [handle_inquiry]: Fetched {len(areas)} areas")
-            
-        # Default: Lead capture
-        else:
-            logger.warning(f"Node [handle_inquiry]: No inquiry keywords matched in message: '{message}'")
-            results["type"] = "lead_capture_needed"
-            results["message"] = "General inquiry - need specific requirements"
-            logger.info(f"Node [handle_inquiry]: Lead capture flow")
-            
         state["inquiry_results"] = results
         
     except Exception as e:
         logger.error(f"Node [handle_inquiry]: Error - {e}")
-        state["inquiry_results"] = {"error": str(e)}
+        state["inquiry_results"] = {"error": str(e), "type": "general_qa"}
         
     return state
 

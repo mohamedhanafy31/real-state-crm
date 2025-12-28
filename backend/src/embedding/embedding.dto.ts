@@ -4,16 +4,16 @@
  */
 
 export class SyncAreaDto {
-  area_id: number;
+  area_id: string;
   name: string;
   name_ar?: string;
 }
 
 export class SyncProjectDto {
-  project_id: number;
+  project_id: string;
   name: string;
   name_ar?: string;
-  area_id?: number;
+  area_id?: string;
 }
 
 export class SyncUnitTypeDto {

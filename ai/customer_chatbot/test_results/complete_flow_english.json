@@ -1,0 +1,37 @@
+{
+  "name": "complete_flow_english",
+  "description": "Complete flow in English",
+  "test_type": "happy_path",
+  "phone_number": "20100000002_1071",
+  "original_phone": "20100000002",
+  "passed": false,
+  "message_results": [
+    {
+      "message": "Hello",
+      "response": "عذراً، حدث خطأ في معالجة رسالتك. سيتواصل معك أحد موظفينا قريباً.",
+      "intent": null,
+      "is_complete": false,
+      "extracted_requirements": null,
+      "checks_passed": [
+        "❌ intent: expected greeting, got None"
+      ]
+    }
+  ],
+  "raw_responses": [
+    {
+      "message_index": 0,
+      "user_message": "Hello",
+      "full_response": {
+        "phone_number": "20100000002_1071",
+        "response": "عذراً، حدث خطأ في معالجة رسالتك. سيتواصل معك أحد موظفينا قريباً.",
+        "intent": null,
+        "extracted_requirements": null,
+        "is_complete": false,
+        "confirmation_buttons": null,
+        "should_ask_clarification": null,
+        "timestamp": "2025-12-26T14:29:45.487483"
+      }
+    }
+  ],
+  "errors": []
+}

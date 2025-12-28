@@ -1,12 +1,20 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToMany, BeforeInsert } from 'typeorm';
 import { BrokerArea } from './broker-area.entity';
 import { Request } from './request.entity';
 import { Project } from './project.entity';
+import { generateId } from '../utils/id-generator';
 
 @Entity('areas')
 export class Area {
-    @PrimaryGeneratedColumn({ name: 'area_id' })
-    areaId: number;
+    @PrimaryColumn({ name: 'area_id', type: 'varchar', length: 21 })
+    areaId: string;
+
+    @BeforeInsert()
+    generateId() {
+        if (!this.areaId) {
+            this.areaId = generateId();
+        }
+    }
 
     @Column({ type: 'varchar', length: 255 })
     name: string;

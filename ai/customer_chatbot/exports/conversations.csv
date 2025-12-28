@@ -1,0 +1,4 @@
+phone_number,run_id,start_time,end_time,message_count,intents,final_is_complete,final_requirements,error_count
+2012343456567890,20251225_162119,2025-12-25 16:21:47,2025-12-25 16:22:49,4,"greeting, new_search, inquiry, inquiry",False,"{""area"": ""New Capital"", ""area_id"": 2, ""project"": ""Green Heights 3"", ""needs_roof"": false, ""project_id"": 91, ""needs_garden"": false, ""unit_type"": ""Apartment"", ""unit_type_validated"": true}",1
+20125437637634567890,20251226_025026,2025-12-26 02:51:42,2025-12-26 02:53:15,3,"greeting, unknown, inquiry",False,"{""needs_roof"": false, ""needs_garden"": false}",13
+2013564376234567890,20251226_030219,2025-12-26 09:50:46,2025-12-26 09:52:50,7,"greeting, new_search, inquiry, inquiry, update_requirements, update_requirements",False,{},1

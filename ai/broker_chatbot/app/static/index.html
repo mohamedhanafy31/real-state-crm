@@ -459,7 +459,7 @@
     <script>
       // Configuration
       const API_BASE = "http://localhost:8002/api";
-      const BACKEND_API = "http://localhost:3000/api";
+      const BACKEND_API = "http://localhost:3001/api";
 
       // State
       let currentBrokerId = 342;  // Mohamed Hanafy
@@ -654,7 +654,7 @@
         `;
 
         try {
-            const response = await fetch(`${BACKEND_API}/chatbot/broker/requests/${requestId}/conversations`);
+            const response = await fetch(`${BACKEND_API}/chatbot/broker/requests/${requestId}/conversations?context_type=broker`);
             if (response.ok) {
                 const conversations = await response.json();
                 chatMessages.innerHTML = '';

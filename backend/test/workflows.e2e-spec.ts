@@ -8,8 +8,8 @@ describe('Full Workflow Scenarios (e2e)', () => {
     let supervisorToken: string;
     let broker1Token: string;
     let broker2Token: string;
-    let broker1Id: number;
-    let broker2Id: number;
+    let broker1Id: string;
+    let broker2Id: string;
     let timestamp: number;
 
     beforeAll(async () => {
@@ -84,10 +84,10 @@ describe('Full Workflow Scenarios (e2e)', () => {
     // ===================================
 
     describe('Complete Customer Journey - Happy Path', () => {
-        let customerId: number;
-        let requestId: number;
-        let projectId: number;
-        let unitId: number;
+        let customerId: string;
+        let requestId: string;
+        let projectId: string;
+        let unitId: string;
 
         it('Step 1: Create customer', async () => {
             const res = await request(app.getHttpServer())
@@ -247,9 +247,9 @@ describe('Full Workflow Scenarios (e2e)', () => {
     // ===================================
 
     describe('Customer Cancellation Workflow', () => {
-        let customerId: number;
-        let requestId: number;
-        let unitId: number;
+        let customerId: string;
+        let requestId: string;
+        let unitId: string;
 
         it('Setup: Create customer, request, and reserved unit', async () => {
             // Customer
@@ -326,8 +326,8 @@ describe('Full Workflow Scenarios (e2e)', () => {
     // ===================================
 
     describe('Broker Reassignment Workflow', () => {
-        let customerId: number;
-        let requestId: number;
+        let customerId: string;
+        let requestId: string;
 
         it('Setup: Create customer and request assigned to broker 1', async () => {
             const customerRes = await request(app.getHttpServer())
@@ -384,9 +384,9 @@ describe('Full Workflow Scenarios (e2e)', () => {
     // ===================================
 
     describe('Customer with Multiple Requests', () => {
-        let customerId: number;
-        let request1Id: number;
-        let request2Id: number;
+        let customerId: string;
+        let request1Id: string;
+        let request2Id: string;
 
         it('Create customer', async () => {
             const res = await request(app.getHttpServer())
@@ -454,10 +454,10 @@ describe('Full Workflow Scenarios (e2e)', () => {
     // ===================================
 
     describe('Complete Project Lifecycle', () => {
-        let projectId: number;
-        let unit1Id: number;
-        let unit2Id: number;
-        let unit3Id: number;
+        let projectId: string;
+        let unit1Id: string;
+        let unit2Id: string;
+        let unit3Id: string;
 
         it('Create project', async () => {
             const res = await request(app.getHttpServer())

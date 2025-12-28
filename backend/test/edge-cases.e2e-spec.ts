@@ -7,8 +7,8 @@ describe('Edge Cases & Validation (e2e)', () => {
     let app: INestApplication;
     let supervisorToken: string;
     let brokerToken: string;
-    let validCustomerId: number;
-    let validProjectId: number;
+    let validCustomerId: string;
+    let validProjectId: string;
     const timestamp = Date.now();
 
     beforeAll(async () => {

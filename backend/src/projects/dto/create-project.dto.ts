@@ -8,10 +8,10 @@ export class CreateProjectDto {
     @IsNotEmpty()
     name: string;
 
-    @ApiProperty({ example: 1 })
-    @IsInt()
+    @ApiProperty({ example: 'area-123' })
+    @IsString()
     @IsNotEmpty()
-    areaId: number;
+    areaId: string;
 
     @ApiProperty({ example: true, required: false })
     @IsBoolean()

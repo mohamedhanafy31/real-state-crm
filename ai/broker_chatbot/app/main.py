@@ -4,11 +4,13 @@ AI assistant for real estate brokers to analyze client requests.
 """
 
 from pathlib import Path
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from contextlib import asynccontextmanager
+import json
+import traceback
 
 from app.api.routes import health, chat
 from app.core.logging_config import get_logger, setup_logging
@@ -91,6 +93,77 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Request logging middleware
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all incoming requests and their responses."""
+    # Read the request body
+    body = await request.body()
+    body_text = body.decode('utf-8') if body else ""
+    
+    # Log the request
+    logger.info(f"\n{'='*60}")
+    logger.info(f"📥 INCOMING REQUEST: {request.method} {request.url.path}")
+    logger.info(f"📥 Headers: {dict(request.headers)}")
+    if body_text:
+        try:
+            body_json = json.loads(body_text)
+            logger.info(f"📥 Body (JSON):\n{json.dumps(body_json, indent=2, ensure_ascii=False)}")
+        except json.JSONDecodeError:
+            logger.info(f"📥 Body (raw): {body_text[:500]}")
+    logger.info(f"{'='*60}\n")
+    
+    # Recreate the request with the body
+    from starlette.requests import Request as StarletteRequest
+    from starlette.datastructures import Headers
+    
+    async def receive():
+        return {"type": "http.request", "body": body}
+    
+    request = StarletteRequest(request.scope, receive)
+    
+    # Call the route handler
+    try:
+        response = await call_next(request)
+        logger.info(f"📤 RESPONSE: {request.method} {request.url.path} -> {response.status_code}")
+        return response
+    except Exception as e:
+        logger.error(f"❌ ERROR in {request.method} {request.url.path}: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise
+
+
+# Custom validation error handler
+from fastapi.exceptions import RequestValidationError
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Handle validation errors with detailed logging."""
+    body = await request.body()
+    body_text = body.decode('utf-8') if body else ""
+    
+    logger.error(f"\n{'='*60}")
+    logger.error(f"❌ VALIDATION ERROR: {request.method} {request.url.path}")
+    logger.error(f"❌ Errors: {exc.errors()}")
+    if body_text:
+        try:
+            body_json = json.loads(body_text)
+            logger.error(f"❌ Received Body:\n{json.dumps(body_json, indent=2, ensure_ascii=False)}")
+        except json.JSONDecodeError:
+            logger.error(f"❌ Received Body (raw): {body_text[:500]}")
+    logger.error(f"{'='*60}\n")
+    
+    return JSONResponse(
+        status_code=422,
+        content={
+            "detail": exc.errors(),
+            "body": body_text[:500] if body_text else None,
+            "message": "Validation error - check broker_id and request_id are strings, and message is not empty"
+        }
+    )
+
+
 # Include routers
 app.include_router(health.router)
 app.include_router(chat.router)
@@ -114,4 +187,3 @@ async def root():
         "ready": "/ready",
         "ui": "/static/index.html"
     }
-

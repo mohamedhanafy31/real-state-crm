@@ -17,17 +17,17 @@ router = APIRouter()
 
 class SyncAreaRequest(BaseModel):
     """Request to sync area embedding."""
-    area_id: int
+    area_id: str
     name: str
     name_ar: Optional[str] = None
 
 
 class SyncProjectRequest(BaseModel):
     """Request to sync project embedding."""
-    project_id: int
+    project_id: str
     name: str
     name_ar: Optional[str] = None
-    area_id: Optional[int] = None
+    area_id: Optional[str] = None
 
 class SyncUnitTypeRequest(BaseModel):
     """Request to sync unit type embedding."""
@@ -172,7 +172,7 @@ async def sync_unit_type(request: SyncUnitTypeRequest):
 
 
 @router.delete("/area/{area_id}", response_model=DeleteResponse)
-async def delete_area(area_id: int):
+async def delete_area(area_id: str):
     """
     Delete area embedding.
     Called by backend on area delete.
@@ -201,7 +201,7 @@ async def delete_area(area_id: int):
 
 
 @router.delete("/project/{project_id}", response_model=DeleteResponse)
-async def delete_project(project_id: int):
+async def delete_project(project_id: str):
     """
     Delete project embedding.
     Called by backend on project delete.

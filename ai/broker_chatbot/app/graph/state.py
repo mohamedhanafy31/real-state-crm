@@ -52,13 +52,13 @@ class StrategyRecommendation(TypedDict, total=False):
 class RequestData(TypedDict, total=False):
     """Request details from the CRM."""
     
-    request_id: int
-    customer_id: int
+    request_id: str
+    customer_id: str
     customer_name: Optional[str]
     customer_phone: Optional[str]
     
     # Request details
-    area_id: Optional[int]
+    area_id: Optional[str]
     area_name: Optional[str]
     unit_type: Optional[str]
     budget_min: Optional[float]
@@ -70,15 +70,15 @@ class RequestData(TypedDict, total=False):
     # Status
     status: str
     created_at: str
-    assigned_broker_id: Optional[int]
+    assigned_broker_id: Optional[str]
 
 
 class ConversationMessage(TypedDict, total=False):
     """Single conversation message."""
     
-    conversation_id: int
+    conversation_id: str
     actor_type: str                  # customer, broker, ai
-    actor_id: int
+    actor_id: str
     message: str
     created_at: str
 
@@ -87,8 +87,8 @@ class BrokerConversationState(TypedDict, total=False):
     """State passed between LangGraph nodes for broker chatbot."""
     
     # ========== Input ==========
-    broker_id: int                   # ID of the broker using the chatbot
-    request_id: int                  # ID of the client request being analyzed
+    broker_id: str                   # ID of the broker using the chatbot
+    request_id: str                  # ID of the client request being analyzed
     broker_message: str              # Broker's question or command
     
     # ========== Context (loaded from backend) ==========

@@ -7,6 +7,8 @@ import {
     ManyToOne,
     JoinColumn,
     OneToMany,
+    PrimaryColumn,
+    BeforeInsert,
 } from 'typeorm';
 import { Customer } from './customer.entity';
 import { Broker } from './broker.entity';
@@ -14,20 +16,28 @@ import { Area } from './area.entity';
 import { RequestStatusHistory } from './request-status-history.entity';
 import { Conversation } from './conversation.entity';
 import { Reservation } from './reservation.entity';
+import { generateId } from '../utils/id-generator';
 
 @Entity('requests')
 export class Request {
-    @PrimaryGeneratedColumn({ name: 'request_id' })
-    requestId: number;
+    @PrimaryColumn({ name: 'request_id', type: 'varchar', length: 21 })
+    requestId: string;
 
-    @Column({ name: 'customer_id' })
-    customerId: number;
+    @BeforeInsert()
+    generateId() {
+        if (!this.requestId) {
+            this.requestId = generateId();
+        }
+    }
 
-    @Column({ name: 'assigned_broker_id', nullable: true })
-    assignedBrokerId: number | null;
+    @Column({ name: 'customer_id', type: 'varchar', length: 21 })
+    customerId: string;
 
-    @Column({ name: 'area_id' })
-    areaId: number;
+    @Column({ name: 'assigned_broker_id', type: 'varchar', length: 21, nullable: true })
+    assignedBrokerId: string | null;
+
+    @Column({ name: 'area_id', type: 'varchar', length: 21 })
+    areaId: string;
 
     @Column({ type: 'varchar', length: 50 })
     status: string;

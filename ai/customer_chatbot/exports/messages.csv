@@ -1,0 +1,230 @@
+run_id,timestamp,phone_number,user_message,bot_response,intent,raw_intent,is_complete,extracted_requirements,missing_fields,should_ask_clarification,processing_time_sec,node_logs,errors
+20251225_162119,2025-12-25 16:21:47,2012343456567890,اهلا,"أهلاً وسهلاً! أنا مساعدك في البحث عن العقارات.
+
+أقدر أساعدك في إيجاد وحدات في المناطق المتاحة لدينا:
+• Madinty
+• New Capital
+• North Coast
+• Sharm El Sheikh
+• Tagamoo
+
+حابب تبدأ البحث في أي منطقة؟",greeting,greeting,False,"{""needs_garden"": false, ""needs_roof"": false}","area, requirements",True,4.0,"Node [extract_requirements]: Merged requirements - 2 fields, Confirmation needed: False
+Node [generate_clarification]: Entry - Suggest Project: False, Missing: ['area', 'requirements']
+Node [generate_clarification]: Prepared question for: area",
+20251225_162119,2025-12-25 16:21:57,2012343456567890,New Capital,"ممتاز! في **New Capital** عندنا مشاريع مميزة:
+
+• Crystal Resort 2  
+• Crystal Towers 4  
+• Future View 7  
+• Green Heights 3  
+• Palm View 11  
+
+**تحب تحدد مشروع معين ولا ندور في المنطقة كلها؟**",new_search,new_search,False,"{""needs_roof"": false, ""needs_garden"": false, ""area"": ""New Capital"", ""area_id"": 7}",requirements,True,3.0,"Node [load_session_state]: Loaded existing session for 2012343456567890
+Node [extract_requirements]: Merged requirements - 4 fields, Confirmation needed: False
+Node [check_missing_data]: Found 6 projects for New Capital, suggesting...
+Node [generate_clarification]: Entry - Suggest Project: True, Missing: ['requirements']
+Node [generate_clarification]: Suggesting for area 'New Capital' - Found 6 projects
+Node [generate_response]: Source -> Clarification Question",
+20251225_162119,2025-12-25 16:22:05,2012343456567890,Green Heights 3,"اختيار ممتاز! **Green Heights 3** من المشاريع المميزة في العاصمة الإدارية الجديدة. 
+
+**تحب تعرف تفاصيل أكتر عن الوحدات المتاحة أو الأسعار؟**",inquiry,inquiry,False,"{""area"": ""New Capital"", ""area_id"": 7, ""needs_roof"": false, ""needs_garden"": false, ""project"": ""Green Heights 3"", ""project_id"": 91}",,False,4.0,"Node [load_session_state]: Loaded existing session for 2012343456567890
+Node [extract_requirements]: Merged requirements - 6 fields, Confirmation needed: False
+Node [handle_inquiry]: Smart Router Classification -> general_qa | Entities: {'project': 'Green Heights 3', 'area': 'New Capital', 'unit_type': None}
+Node [generate_response]: Source -> Inquiry Results (Anti-Hallucination Mode, Limited Data)",
+20251225_162119,2025-12-25 16:22:49,2012343456567890,طيب اي رينج اسعار شقق المشروع دا,"لا توجد لدي معلومة مؤكدة حالياً عن نطاق أسعار الشقق في مشروع **Green Heights 3**. 
+
+هل ترغب في معرفة تفاصيل أخرى عن المشروع أو استكشاف مشاريع أخرى في العاصمة الإدارية الجديدة؟ أنا هنا للمساعدة!",inquiry,inquiry,False,"{""area"": ""New Capital"", ""area_id"": 2, ""project"": ""Green Heights 3"", ""needs_roof"": false, ""project_id"": 91, ""needs_garden"": false, ""unit_type"": ""Apartment"", ""unit_type_validated"": true}",,False,4.0,"Node [load_session_state]: Loaded existing session for 2012343456567890
+Node [extract_requirements]: Merged requirements - 7 fields, Confirmation needed: False
+Node [validate_names]: Unit type matched: Apartment
+Node [handle_inquiry]: Smart Router Classification -> price_check | Entities: {'project': 'Green Heights 3', 'area': 'New Capital', 'unit_type': 'شقق'}
+Node [handle_inquiry]: Error - get_price_range() got an unexpected keyword argument 'project_name'
+Node [generate_response]: Source -> Inquiry Results (Anti-Hallucination Mode, Limited Data)",Node [handle_inquiry]: Error - get_price_range() got an unexpected keyword argument 'project_name'
+20251226_025026,2025-12-26 02:51:42,20125437637634567890,hi,"أهلاً وسهلاً! أنا مساعدك في البحث عن العقارات.
+
+أقدر أساعدك في إيجاد وحدات في المناطق المتاحة لدينا:
+
+
+حابب تبدأ البحث في أي منطقة؟",greeting,greeting,False,"{""needs_garden"": false, ""needs_roof"": false}","area, requirements",True,3.0,"  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+Node [extract_requirements]: Merged requirements - 2 fields, Confirmation needed: False
+Node [generate_clarification]: Entry - Suggest Project: False, Missing: ['area', 'requirements']
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+Node [generate_clarification]: Prepared question for: area
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404","Error fetching areas: Client error '404 Not Found' for url 'http://localhost:3001/api/areas'
+Error fetching projects: Client error '404 Not Found' for url 'http://localhost:3001/api/chatbot/projects'
+Error fetching unit types: Client error '404 Not Found' for url 'http://localhost:3001/api/chatbot/units/types'
+Error fetching areas: Client error '404 Not Found' for url 'http://localhost:3001/api/areas'
+Error fetching areas: Client error '404 Not Found' for url 'http://localhost:3001/api/areas'"
+20251226_025026,2025-12-26 02:53:01,20125437637634567890,اي المنا,"فهمت من رسالتك إنك مش محتاج عقار بسقف أو حديقة.
+
+ممكن تحدد لي **المنطقة** اللي بتدور عليها؟",unknown,unknown,False,"{""needs_roof"": false, ""needs_garden"": false}","area, requirements",True,4.0,"Node [load_session_state]: Loaded existing session for 20125437637634567890
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+Node [extract_requirements]: Merged requirements - 2 fields, Confirmation needed: False
+Node [generate_clarification]: Entry - Suggest Project: False, Missing: ['area', 'requirements']
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+Node [generate_clarification]: Prepared question for: area
+Node [generate_response]: Source -> Clarification Question","Error fetching areas: Client error '404 Not Found' for url 'http://localhost:3001/api/areas'
+Error fetching projects: Client error '404 Not Found' for url 'http://localhost:3001/api/chatbot/projects'
+Error fetching unit types: Client error '404 Not Found' for url 'http://localhost:3001/api/chatbot/units/types'
+Error fetching areas: Client error '404 Not Found' for url 'http://localhost:3001/api/areas'"
+20251226_025026,2025-12-26 02:53:15,20125437637634567890,اي المناطق المتاحة؟,لا توجد معلومات متاحة حالياً عن المناطق المتاحة. يرجى تزويدي باسم منطقة محددة لأساعدك في البحث عن العقارات المتاحة فيها.,inquiry,inquiry,False,"{""needs_roof"": false, ""needs_garden"": false}",,False,5.0,"Node [load_session_state]: Loaded existing session for 20125437637634567890
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+Node [extract_requirements]: Merged requirements - 2 fields, Confirmation needed: False
+Node [handle_inquiry]: Smart Router Classification -> location_info | Entities: {'project': None, 'area': None, 'unit_type': None}
+  For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404
+Node [generate_response]: Source -> Inquiry Results (Anti-Hallucination Mode, Limited Data)","Error fetching areas: Client error '404 Not Found' for url 'http://localhost:3001/api/areas'
+Error fetching projects: Client error '404 Not Found' for url 'http://localhost:3001/api/chatbot/projects'
+Error fetching unit types: Client error '404 Not Found' for url 'http://localhost:3001/api/chatbot/units/types'
+Error fetching all areas: Client error '404 Not Found' for url 'http://localhost:3001/api/chatbot/areas'"
+20251226_030219,2025-12-26 09:50:46,2013564376234567890,hi,"أهلاً وسهلاً! أنا مساعدك في البحث عن العقارات.
+
+أقدر أساعدك في إيجاد وحدات في المناطق المتاحة لدينا:
+• Madinty
+• New Capital
+• North Coast
+• Sharm El Sheikh
+• Tagamoo
+
+حابب تبدأ البحث في أي منطقة؟",greeting,greeting,False,"{""needs_garden"": false, ""needs_roof"": false}","area, requirements",True,4.0,"Node [extract_requirements]: Merged requirements - 2 fields, Confirmation needed: False
+Node [generate_clarification]: Entry - Suggest Project: False, Missing: ['area', 'requirements']
+Node [generate_clarification]: Prepared question for: area",
+20251226_030219,2025-12-26 09:50:52,2013564376234567890,Tagamoo,"فهمت إنك مهتم بالعقارات في منطقة **Tagamoo**، ومش محتاج عقار بسقف أو حديقة.
+
+عندنا مشاريع مميزة في Tagamoo:
+
+* **Future Garden 15**
+
+* **Golden Bay 5**
+
+* **Green Plaza 1**
+
+* **Mountain Garden 8**
+
+* **Mountain Heights 10**
+
+**تحب تحدد مشروع معين ولا ندور في المنطقة كلها؟**",new_search,new_search,False,"{""needs_roof"": false, ""needs_garden"": false, ""area"": ""Tagamoo"", ""area_id"": 8}",requirements,True,5.0,"Node [load_session_state]: Loaded existing session for 2013564376234567890
+Node [extract_requirements]: Merged requirements - 4 fields, Confirmation needed: False
+Node [check_missing_data]: Found 6 projects for Tagamoo, suggesting...
+Node [generate_clarification]: Entry - Suggest Project: True, Missing: ['requirements']
+Node [generate_clarification]: Suggesting for area 'Tagamoo' - Found 6 projects
+Node [generate_response]: Source -> Clarification Question",
+20251226_030219,2025-12-26 09:51:14,2013564376234567890,اي رينج الاسعار بتاعة بروجيكت Green Plaza 1,"بناءً على البيانات المتاحة، نطاق الأسعار في مشروع **Green Plaza 1** يبدأ من **1,275,768** جنيه مصري ويصل إلى **37,440,000** جنيه مصري، مع وجود **1,179** وحدة متاحة.",inquiry,inquiry,False,"{""area"": ""Tagamoo"", ""area_id"": 8, ""needs_roof"": false, ""needs_garden"": false, ""project"": ""Green Plaza 1"", ""project_id"": 89, ""floor_preference"": ""any""}",,False,7.0,"Node [load_session_state]: Loaded existing session for 2013564376234567890
+Node [extract_requirements]: Merged requirements - 7 fields, Confirmation needed: False
+Node [handle_inquiry]: Smart Router Classification -> price_check | Entities: {'project': 'Green Plaza 1', 'area': 'Tagamoo', 'unit_type': None}
+Node [generate_response]: Source -> Inquiry Results (Anti-Hallucination Mode, Limited Data)",
+20251226_030219,2025-12-26 09:51:51,2013564376234567890,طيب انا كنت محتاج شقة تكون بالكتير اوي تكلف 5 مليون,"بناءً على طلبك، نطاق الأسعار المتاح في النتائج هو:
+
+- **الحد الأدنى**: 1,275,768 جنيه مصري
+- **الحد الأقصى**: 9,087,000 جنيه مصري
+- **عدد الوحدات**: 253
+
+يمكنك العثور على وحدات ضمن ميزانيتك التي لا تتجاوز 5 مليون جنيه مصري ضمن هذا النطاق.",inquiry,inquiry,False,"{""area"": ""Tagamoo"", ""area_id"": 8, ""project"": ""Green Plaza 1"", ""needs_roof"": false, ""project_id"": 89, ""needs_garden"": false, ""floor_preference"": ""any"", ""unit_type"": ""Apartment"", ""budget_max"": 5000000, ""unit_type_validated"": true}",,False,5.0,"Node [load_session_state]: Loaded existing session for 2013564376234567890
+Node [extract_requirements]: Merged requirements - 9 fields, Confirmation needed: False
+Node [validate_names]: Unit type matched: Apartment
+Node [handle_inquiry]: Smart Router Classification -> price_check | Entities: {'project': 'Green Plaza 1', 'area': 'Tagamoo', 'unit_type': None}
+Node [generate_response]: Source -> Inquiry Results (Anti-Hallucination Mode, Limited Data)",
+20251226_030219,2025-12-26 09:52:26,2013564376234567890,لا 9 مليون اي انا بقولك 5 مليون بس مش اكتر,"خليني أتأكد من طلبك:
+
+• 📍 المنطقة: Tagamoo
+• 🏗️ المشروع: Green Plaza 1
+• 🏠 نوع الوحدة: Apartment
+• 💰 الميزانية: 5000000
+
+**كده تمام؟** ولا تحب تعدل حاجة؟",update_requirements,update_requirements,True,"{""area"": ""Tagamoo"", ""area_id"": 8, ""project"": ""Green Plaza 1"", ""unit_type"": ""Apartment"", ""budget_max"": 5000000, ""needs_roof"": false, ""project_id"": 89, ""needs_garden"": false, ""floor_preference"": ""any"", ""unit_type_validated"": true}",,False,4.0,"Node [load_session_state]: Loaded existing session for 2013564376234567890
+Node [extract_requirements]: Merged requirements - 10 fields, Confirmation needed: False
+Node [search_units]: Found 20 matching units
+Node [requirement_confirmation]: Attempt 1 - asking for confirmation
+Node [generate_response]: Source -> Confirmation Flow",
+20251226_030219,2025-12-26 09:52:42,2013564376234567890,اه تمام كدة مظبوط,"خليني أتأكد من طلبك:
+
+• 📍 المنطقة: Tagamoo
+• 🏗️ المشروع: Green Plaza 1
+• 🏠 نوع الوحدة: Apartment
+• 💰 الميزانية: 5000000
+
+**كده تمام؟** ولا تحب تعدل حاجة؟",update_requirements,confirm,True,"{""area"": ""Tagamoo"", ""area_id"": 8, ""project"": ""Green Plaza 1"", ""unit_type"": ""Apartment"", ""budget_max"": 5000000, ""needs_roof"": false, ""project_id"": 89, ""needs_garden"": false, ""floor_preference"": ""any"", ""unit_type_validated"": true}",,False,3.0,"Node [load_session_state]: Loaded existing session for 2013564376234567890
+Node [extract_requirements]: Merged requirements - 10 fields, Confirmation needed: False
+Node [search_units]: Found 20 matching units
+Node [requirement_confirmation]: Attempt 1 - asking for confirmation
+Node [generate_response]: Source -> Confirmation Flow",
+20251226_030219,2025-12-26 09:52:50,2013564376234567890,تمام,عذراً، حدث خطأ في معالجة رسالتك. سيتواصل معك أحد موظفينا قريباً.,,,False,{},,False,17.0,"Node [load_session_state]: Loaded existing session for 2013564376234567890
+  Traceback (most recent call last):
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpx/_transports/default.py"", line 101, in map_httpcore_exceptions
+  yield
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpx/_transports/default.py"", line 250, in handle_request
+  resp = self._pool.handle_request(req)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpcore/_sync/connection_pool.py"", line 256, in handle_request
+  raise exc from None
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpcore/_sync/connection_pool.py"", line 236, in handle_request
+  response = connection.handle_request(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpcore/_sync/connection.py"", line 101, in handle_request
+  raise exc
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpcore/_sync/connection.py"", line 78, in handle_request
+  stream = self._connect(request)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpcore/_sync/connection.py"", line 124, in _connect
+  stream = self._network_backend.connect_tcp(**kwargs)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpcore/_backends/sync.py"", line 215, in connect_tcp
+  sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/contextlib.py"", line 137, in __exit__
+  self.gen.throw(typ, value, traceback)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpcore/_exceptions.py"", line 14, in map_exceptions
+  raise to_exc(exc) from exc
+  httpcore.ConnectError: [Errno 101] Network is unreachable
+  The above exception was the direct cause of the following exception:
+  Traceback (most recent call last):
+  File ""/media/hanafy/aa9ee400-c081-4d3b-b831-a2a8c83c9f4410/MetaVR/real_state_CRM/ai/customer_chatbot/app/services/conversation.py"", line 59, in process_message
+  final_state = self.workflow.invoke(initial_state)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langgraph/pregel/main.py"", line 3085, in invoke
+  for chunk in self.stream(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langgraph/pregel/main.py"", line 2674, in stream
+  for _ in runner.tick(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langgraph/pregel/_runner.py"", line 162, in tick
+  run_with_retry(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langgraph/pregel/_retry.py"", line 42, in run_with_retry
+  return task.proc.invoke(task.input, config)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langgraph/_internal/_runnable.py"", line 657, in invoke
+  input = context.run(step.invoke, input, config, **kwargs)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langgraph/_internal/_runnable.py"", line 401, in invoke
+  ret = self.func(*args, **kwargs)
+  File ""/media/hanafy/aa9ee400-c081-4d3b-b831-a2a8c83c9f4410/MetaVR/real_state_CRM/ai/customer_chatbot/app/graph/nodes.py"", line 264, in detect_intent
+  response = llm_service.generate_response(
+  File ""/media/hanafy/aa9ee400-c081-4d3b-b831-a2a8c83c9f4410/MetaVR/real_state_CRM/ai/customer_chatbot/app/core/llm.py"", line 161, in generate_response
+  response = self.llm.invoke(messages)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langchain_core/language_models/chat_models.py"", line 395, in invoke
+  self.generate_prompt(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langchain_core/language_models/chat_models.py"", line 1025, in generate_prompt
+  return self.generate(prompt_messages, stop=stop, callbacks=callbacks, **kwargs)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langchain_core/language_models/chat_models.py"", line 842, in generate
+  self._generate_with_cache(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langchain_core/language_models/chat_models.py"", line 1091, in _generate_with_cache
+  result = self._generate(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/langchain_cohere/chat_models.py"", line 1142, in _generate
+  response = self.client.v2.chat(**request)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/cohere/v2/client.py"", line 360, in chat
+  _response = self._raw_client.chat(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/cohere/v2/raw_client.py"", line 525, in chat
+  _response = self._client_wrapper.httpx_client.request(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/cohere/core/http_client.py"", line 213, in request
+  response = self.httpx_client.request(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpx/_client.py"", line 825, in request
+  return self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpx/_client.py"", line 914, in send
+  response = self._send_handling_auth(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpx/_client.py"", line 942, in _send_handling_auth
+  response = self._send_handling_redirects(
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpx/_client.py"", line 979, in _send_handling_redirects
+  response = self._send_single_request(request)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpx/_client.py"", line 1014, in _send_single_request
+  response = transport.handle_request(request)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpx/_transports/default.py"", line 250, in handle_request
+  resp = self._pool.handle_request(req)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/contextlib.py"", line 137, in __exit__
+  self.gen.throw(typ, value, traceback)
+  File ""/home/hanafy/miniconda3/envs/chatbot-ai-realstate/lib/python3.9/site-packages/httpx/_transports/default.py"", line 118, in map_httpcore_exceptions
+  raise mapped_exc(message) from exc
+  httpx.ConnectError: [Errno 101] Network is unreachable",Error processing message for 2013564376234567890: [Errno 101] Network is unreachable

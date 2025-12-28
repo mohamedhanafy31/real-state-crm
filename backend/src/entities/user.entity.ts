@@ -1,10 +1,18 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToOne } from 'typeorm';
+import { Entity, PrimaryColumn, Column, CreateDateColumn, OneToOne, BeforeInsert } from 'typeorm';
 import { Broker } from './broker.entity';
+import { generateId } from '../utils/id-generator';
 
 @Entity('users')
 export class User {
-    @PrimaryGeneratedColumn({ name: 'user_id' })
-    userId: number;
+    @PrimaryColumn({ name: 'user_id', type: 'varchar', length: 21 })
+    userId: string;
+
+    @BeforeInsert()
+    generateId() {
+        if (!this.userId) {
+            this.userId = generateId();
+        }
+    }
 
     @Column({ type: 'varchar', length: 255 })
     name: string;
@@ -15,8 +23,8 @@ export class User {
     @Column({ type: 'varchar', length: 255, nullable: true })
     email: string;
 
-    @Column({ type: 'varchar', length: 255, nullable: true, select: false })
-    password_hash: string;
+    @Column({ type: 'varchar', length: 255, nullable: true, select: false, name: 'password_hash' })
+    passwordHash: string;
 
     @Column({
         type: 'varchar',

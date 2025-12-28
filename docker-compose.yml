@@ -10,7 +10,7 @@ services:
       - "5433:5432"
     volumes:
       - ./pgdata:/var/lib/postgresql/data
-      - ./DB/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./DB/final/final_schema.sql:/docker-entrypoint-initdb.d/init.sql
 
   redis:
     image: redis:7-alpine
@@ -45,6 +45,7 @@ services:
       - CACHE_TTL_DEFAULT=3600
       - CACHE_TTL_STATIC=86400
       - CACHE_TTL_DYNAMIC=300
+      - AI_INTERVIEWER_URL=http://broker_interviewer:8000
     depends_on:
       - db
       - redis
@@ -59,3 +60,80 @@ services:
       - "5000:5000"
     depends_on:
       - backend
+
+  embedding:
+    build: ./ai/embedding
+    container_name: real_estate_crm_embedding
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./ai/embedding/.env
+    environment:
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432
+    depends_on:
+      - db
+
+  customer_chatbot:
+    build: ./ai/customer_chatbot
+    container_name: real_estate_crm_customer_chatbot
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./ai/customer_chatbot/.env
+    environment:
+      - BACKEND_API_URL=http://backend:3000/api
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - EMBEDDING_SERVICE_URL=http://embedding:8001
+    depends_on:
+      - db
+      - backend
+      - embedding
+
+  broker_chatbot:
+    build: ./ai/broker_chatbot
+    container_name: real_estate_crm_broker_chatbot
+    ports:
+      - "8002:8002"
+    env_file:
+      - ./ai/broker_chatbot/.env
+    environment:
+      - BACKEND_API_URL=http://backend:3000/api
+      - EMBEDDING_SERVICE_URL=http://embedding:8001
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+    depends_on:
+      - db
+      - backend
+      - embedding
+
+  whatsapp_api:
+    build: ./ai/whatsApp_api
+    container_name: real_estate_crm_whatsapp_api
+    ports:
+      - "8003:8003"
+    env_file:
+      - ./ai/whatsApp_api/.env
+    environment:
+      - CHATBOT_API_URL=http://customer_chatbot:8000
+    depends_on:
+      - customer_chatbot
+
+  broker_interviewer:
+    build: ./ai/broker_interviewer
+    container_name: real_estate_crm_broker_interviewer
+    ports:
+      - "8004:8000"
+    env_file:
+      - ./ai/broker_interviewer/.env
+    environment:
+      - BACKEND_URL=http://backend:3000/api
+      - DB_HOST=db
+      - DB_PORT=5432
+      - PORT=8000
+    depends_on:
+      - backend
+      - db

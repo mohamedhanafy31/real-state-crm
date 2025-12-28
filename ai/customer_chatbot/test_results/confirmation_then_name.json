@@ -1,0 +1,15 @@
+{
+  "name": "confirmation_then_name",
+  "description": "Confirmation followed by name/phone should complete request",
+  "test_type": "confirmation_flow",
+  "phone_number": "20100000009_9927",
+  "original_phone": "20100000009",
+  "passed": false,
+  "message_results": [],
+  "raw_responses": [],
+  "errors": [
+    "Message 1: ConnectError: [Errno 111] Connection refused",
+    "Message 2: ConnectError: [Errno 111] Connection refused",
+    "Message 3: ConnectError: [Errno 111] Connection refused"
+  ]
+}
