@@ -1,5 +1,6 @@
 param(
-    [string]$CohereApiKey = "placeholder_key"
+    [string]$CohereApiKey = "placeholder_key",
+    [string]$GeminiApiKey = "placeholder_key"
 )
 
 Write-Host "🚀 Setting up environment variables for all services..."
@@ -8,7 +9,7 @@ Write-Host "🚀 Setting up environment variables for all services..."
 Write-Host "📝 Creating ai/customer_chatbot/.env"
 $CustomerChatbotEnv = @"
 GENERATOR_TYPE=cohere
-GEMINI_API_KEY=AIzaSyCr6-jbYUip5OD0gEYYpdjkNN1hp-1U8TA
+GEMINI_API_KEY=$GeminiApiKey
 COHERE_API_KEY=$CohereApiKey
 DATABASE_HOST=localhost
 DATABASE_PORT=5433

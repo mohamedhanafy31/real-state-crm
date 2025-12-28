@@ -8,12 +8,13 @@
 echo "🚀 Setting up environment variables for all services..."
 
 COHERE_API_KEY=\${1:-placeholder_key}
+GEMINI_API_KEY=\${2:-placeholder_key}
 
 # 1. Customer Chatbot
 echo "📝 Creating ai/customer_chatbot/.env"
 cat > ai/customer_chatbot/.env <<EOF
 GENERATOR_TYPE=cohere
-GEMINI_API_KEY=AIzaSyCr6-jbYUip5OD0gEYYpdjkNN1hp-1U8TA
+GEMINI_API_KEY=\$GEMINI_API_KEY
 COHERE_API_KEY=\$COHERE_API_KEY
 DATABASE_HOST=localhost
 DATABASE_PORT=5433

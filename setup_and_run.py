@@ -95,9 +95,27 @@ def get_api_key(cli_key=None):
     print("✅ API Key received.")
     return api_key
 
+def get_gemini_api_key(cli_key=None):
+    """Get Gemini API Key from CLI argument or prompt user."""
+    if cli_key:
+        print(f"🔑 Using Gemini API Key provided via command line.")
+        return cli_key
+
+    print("\n🔑 Google/Gemini API Key Configuration")
+    print("--------------------------------------------------")
+    print("Please enter your Google (Gemini) API Key (Optional).")
+    print("Press Enter to skip if you don't have one.")
+    api_key = input("Gemini API Key (Optional): ").strip()
+    if not api_key:
+        print("ℹ️  Skipping Gemini API Key. Using placeholder.")
+        return "placeholder_key"
+    print("✅ API Key received.")
+    return api_key
+
 def main():
     parser = argparse.ArgumentParser(description="Setup and Run Real Estate CRM")
     parser.add_argument("--api-key", help="Cohere API Key", default=None)
+    parser.add_argument("--gemini-api-key", help="Google/Gemini API Key", default=None)
     args = parser.parse_args()
 
     system = platform.system()
@@ -112,19 +130,20 @@ def main():
     # 0.5. Pre-pull images
     pull_images()
 
-    # 0.6 Get API Key
+    # 0.6 Get API Keys
     cohere_api_key = get_api_key(args.api_key)
+    gemini_api_key = get_gemini_api_key(args.gemini_api_key)
 
     if system == "Windows":
         run_command(["powershell", "-ExecutionPolicy", "Bypass", "-Command", "chmod +x ./setup_envs.ps1"])
         print("\n--- Step 1: Setting up Environment Variables ---")
-        # Pass API key as argument
-        run_command(["powershell", "-ExecutionPolicy", "Bypass", "-File", ".\\setup_envs.ps1", "-CohereApiKey", cohere_api_key])
+        # Pass API keys as arguments
+        run_command(["powershell", "-ExecutionPolicy", "Bypass", "-File", ".\\setup_envs.ps1", "-CohereApiKey", cohere_api_key, "-GeminiApiKey", gemini_api_key])
     else:
         run_command(["chmod", "+x", "./setup_envs.sh"])
         print("\n--- Step 1: Setting up Environment Variables ---")
-        # Pass API key as argument
-        run_command(["./setup_envs.sh", cohere_api_key])
+        # Pass API keys as arguments
+        run_command(["./setup_envs.sh", cohere_api_key, gemini_api_key])
 
     # 2. Sequential Build (critical for stability)
     print("\n--- Step 2: Building Services Sequentially ---")
